@@ -1,0 +1,66 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+/// Representa tanto Pokémon oficiales como Fakemons creados por la comunidad.
+/// Utiliza un modelo híbrido: metadatos relacionales para ordenamiento y JSONB para atributos dinámicos.
+model Criatura {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre               String   @unique
+  autor                String?  @default("oficial") // "oficial" para Pokémon, UUID/nombre para Fakemons
+  es_fakemon           Boolean  @default(false)
+  popularidad_score    Float    @default(0.0)
+  aprobado_comunidad   Boolean  @default(true)
+  
+  // Carga útil dinámica: stats base, tipos, mecánicas exóticas, umbrales.
+  atributos_de_combate Json
+
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  // Índice GIN para búsquedas ultra-rápidas dentro del JSONB
+  @@index([atributos_de_combate(ops: JsonbPathOps)], type: Gin, map: "idx_criatura_atributos_gin")
+  @@index([popularidad_score(sort: Desc)])
+}
+
+/// Almacena el conocimiento semántico del metajuego, incluyendo reportes de torneos (chunks) y reflexiones autónomas.
+model DocumentoConocimiento {
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  doc_type   String                 // Ej: "chunk_torneo", "analisis_matematico", "reflexion"
+  contenido  String
+  
+  // Metadatos de alta densidad: generación, formato, arquetipo estructural
+  metadatos  Json
+  
+  // Vector de incrustación semántica (384 dimensiones para all-MiniLM-L6-v2)
+  embedding  Unsupported("vector(384)")?
+
+  created_at DateTime @default(now())
+
+  // Índice para similitud vectorial
+  @@index([embedding]) 
+}
+
+/// Sustrato de Inteligencia de Trazas: Registra la "Verdad Terrestre" cuando un usuario corrige a la IA.
+model TrazaCorreccion {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id        String
+  
+  prompt_original   String
+  contexto_rag_usado Json     // Qué fragmentos de conocimiento se le inyectaron a la IA
+  
+  equipo_sugerido   Json     // Lo que la IA generó (Structured Output original)
+  equipo_corregido  Json     // Lo que el usuario finalmente guardó/exportó (Ground Truth)
+  
+  procesado_por_motor Boolean @default(false) // Flag para el Motor de Reflexión
+  
+  created_at        DateTime @default(now())
+
+  @@index([procesado_por_motor])
+}
