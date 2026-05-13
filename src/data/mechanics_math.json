@@ -1,0 +1,66 @@
+{
+  "priority_brackets": {
+    "descripcion": "El orden de turno está dictado por la Velocidad y el Bracket de Prioridad. Movimientos en brackets altos siempre van primero, sin importar la velocidad.",
+    "niveles": {
+      "+5": ["Helping Hand"],
+      "+4": ["Protect", "Detect", "Endure", "Magic Coat", "Snatch", "King's Shield", "Spiky Shield", "Baneful Bunker"],
+      "+3": ["Fake Out", "Quick Guard", "Wide Guard", "Crafty Shield"],
+      "+2": ["Extreme Speed", "Feint", "First Impression", "Ally Switch", "Follow Me", "Rage Powder"],
+      "+1": ["Quick Attack", "Aqua Jet", "Bullet Punch", "Ice Shard", "Mach Punch", "Vacuum Wave", "Shadow Sneak", "Sucker Punch", "Water Shuriken", "Grassy Glide", "Thunderclap"],
+      "0": ["La mayoría de movimientos estándar"],
+      "-1": ["Vital Throw"],
+      "-3": ["Focus Punch", "Shell Trap", "Beak Blast"],
+      "-4": ["Avalanche", "Revenge"],
+      "-5": ["Counter", "Mirror Coat"],
+      "-6": ["Roar", "Whirlwind", "Dragon Tail", "Circle Throw"],
+      "-7": ["Trick Room"]
+    }
+  },
+  "stat_stages": {
+    "descripcion": "Multiplicadores matemáticos al aumentar o reducir estadísticas (Ataque, Defensa, Ataque Especial, Defensa Especial, Velocidad).",
+    "modificadores": {
+      "+6": "4x (400%)",
+      "+5": "3.5x (350%)",
+      "+4": "3x (300%)",
+      "+3": "2.5x (250%)",
+      "+2": "2x (200%)",
+      "+1": "1.5x (150%)",
+      "0": "1x (100%)",
+      "-1": "0.66x (66%)",
+      "-2": "0.5x (50%)",
+      "-3": "0.4x (40%)",
+      "-4": "0.33x (33%)",
+      "-5": "0.28x (28%)",
+      "-6": "0.25x (25%)"
+    },
+    "notas_criticas": [
+      "La habilidad Unaware ignora todos los cambios de stats del rival (tanto defensivos como ofensivos) al calcular daño.",
+      "Golpes críticos ignoran bajadas de ataque propias y subidas de defensa del rival."
+    ]
+  },
+  "double_battles": {
+    "spread_moves": "En combates dobles (ej. VGC), ataques que golpean a múltiples objetivos (como Earthquake, Rock Slide, Dazzling Gleam, Make It Rain) reducen su daño un 25% (golpean con 0.75x de potencia).",
+    "redireccion": "Movimientos como Follow Me o Rage Powder fuerzan a los rivales a atacar al usuario. Sin embargo, Rage Powder no afecta a Pokémon de tipo Planta o equipados con Safety Goggles."
+  },
+  "status_conditions": {
+    "paralisis": "Corta la Velocidad a la mitad (x0.5) y tiene 25% de probabilidad de impedir el ataque (fully paralyzed). Tipos Eléctrico son inmunes.",
+    "quemadura": "Corta el Daño Físico a la mitad (x0.5) y hace 1/16 de daño residual cada turno. Tipos Fuego son inmunes. Habilidades como Guts ignoran el corte de daño e incrementan el ataque.",
+    "veneno": "Daño residual (1/8 normal, incremento exponencial en Toxic). Tipos Veneno y Acero son inmunes.",
+    "sueño": "El Pokémon no puede atacar de 1 a 3 turnos (garantiza mínimo 1 turno de sueño completo en meta actual, a menos que use Snore/Sleep Talk).",
+    "congelacion": "No puede atacar hasta descongelarse (20% chance por turno) o usar movimientos como Scald/Flare Blitz.",
+    "taunt": "Estado volátil. Obliga al objetivo a usar únicamente movimientos que hagan daño directo durante 3 turnos.",
+    "encore": "Estado volátil. Obliga al objetivo a repetir el último movimiento que usó durante 3 turnos.",
+    "disable": "Estado volátil. Desactiva el último movimiento usado por el objetivo por 4 turnos.",
+    "combo_encore_disable": "Si a un Pokémon se le aplica Encore y luego Disable en el mismo movimiento, no podrá usar ningún ataque y se verá forzado a usar Struggle."
+  },
+  "mecanicas_generacionales": {
+    "teracristalizacion": {
+      "stabs": "El STAB original (x1.5) siempre se mantiene. Si el nuevo Tera Tipo coincide con el original, el STAB pasa a ser x2 (Adaptability lo sube a x2.25).",
+      "tera_blast": "Cambia su tipo al Tera Tipo del usuario. Se vuelve Físico o Especial dependiendo de cuál de las dos estadísticas de ataque del usuario sea mayor en el momento del uso."
+    },
+    "dynamax": {
+      "hp": "Duplica los HP base (x2).",
+      "inmunidades": "Inmune al retroceso (flinch), movimientos que fuerzan cambio (Phazing como Roar), Destiny Bond, Encore y Disable."
+    }
+  }
+}

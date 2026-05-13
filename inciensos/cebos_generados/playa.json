@@ -1,0 +1,149 @@
+{
+  "id": "playa",
+  "title": "[ᴄᴇʙᴏ] ᴘʟᴀʏᴀ",
+  "illusion": true,
+  "range": 10,
+  "duration": 1200,
+  "cooldown": 1300,
+  "distance": 8,
+  "minLevel": 15,
+  "maxLevel": 30,
+  "shinyRate": 8192,
+  "maxPokemons": 2,
+  "spawnCooldown": 30,
+  "sound": {
+    "variousPlayers": false,
+    "sound": "minecraft:entity.fox.death",
+    "range": 16,
+    "volume": 1,
+    "pitch": 1
+  },
+  "particle": {
+    "particle": "minecraft:happy_villager",
+    "numberParticles": 25,
+    "offsetX": 1,
+    "offsetY": 1,
+    "offsetZ": 1,
+    "speed": 0,
+    "radius": 32
+  },
+  "display": {
+    "slot": -1,
+    "slots": [],
+    "item": "minecraft:emerald",
+    "displayname": "<white><gray>[<yellow>ᴄᴇʙᴏ<gray>] <gold>ᴘʟᴀʏᴀ",
+    "lore": [
+      "&eAñade este &dᴄᴇʙᴏ&e a una",
+      "&f喇&e y aparecerán",
+      "&ePKMs salvajes"
+    ],
+    "CustomModelData": 1,
+    "nbt": "{CustomModelData:1}"
+  },
+  "filterPokemons": {
+    "blackList": {
+      "onlyImplemented": true,
+      "allowEvolutions": false,
+      "properties": [],
+      "pokemons": [
+        "egg",
+        "pokestop"
+      ],
+      "forms": [],
+      "aspects": [],
+      "labels": [
+        "legendary",
+        "mythical",
+        "ultra_beast"
+      ],
+      "types": [],
+      "rarities": [],
+      "persistentDataMap": {
+        "example_1": [
+          "example_value_1",
+          "example_value_2"
+        ],
+        "example_2": [
+          1,
+          2,
+          3
+        ]
+      },
+      "eggGroups": []
+    },
+    "useChances": true,
+    "pokemonsChances": [
+      {
+        "pokemons": [
+          "squirtle",
+          "psyduck",
+          "poliwag",
+          "tentacool",
+          "slowpoke",
+          "krabby",
+          "horsea",
+          "staryu",
+          "magikarp",
+          "sandshrew",
+          "diglett",
+          "cubone",
+          "wingull",
+          "swablu",
+          "wooper",
+          "totodile",
+          "mudkip",
+          "oshawott",
+          "chinchou",
+          "shellos",
+          "sandile",
+          "barboach",
+          "corphish",
+          "dwebble"
+        ],
+        "chance": 70
+      },
+      {
+        "pokemons": [
+          "wartortle",
+          "poliwhirl",
+          "seadra",
+          "croconaw",
+          "marshtomp",
+          "dewott",
+          "krokorok"
+        ],
+        "chance": 20
+      },
+      {
+        "pokemons": [
+          "blastoise",
+          "golduck",
+          "poliwrath",
+          "tentacruel",
+          "slowbro",
+          "kingler",
+          "kingdra",
+          "starmie",
+          "gyarados",
+          "sandslash",
+          "dugtrio",
+          "marowak",
+          "pelipper",
+          "altaria",
+          "quagsire",
+          "feraligatr",
+          "swampert",
+          "samurott",
+          "lanturn",
+          "gastrodon",
+          "krookodile",
+          "whiscash",
+          "crawdaunt",
+          "crustle"
+        ],
+        "chance": 10
+      }
+    ],
+    "legendarys": false
+  }
+}

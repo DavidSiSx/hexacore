@@ -1,0 +1,144 @@
+{
+  "id": "volcan",
+  "title": "[ᴄᴇʙᴏ] ᴠᴏʟᴄᴀɴ",
+  "illusion": true,
+  "range": 10,
+  "duration": 1200,
+  "cooldown": 1300,
+  "distance": 8,
+  "minLevel": 15,
+  "maxLevel": 30,
+  "shinyRate": 8192,
+  "maxPokemons": 2,
+  "spawnCooldown": 30,
+  "sound": {
+    "variousPlayers": false,
+    "sound": "minecraft:entity.fox.death",
+    "range": 16,
+    "volume": 1,
+    "pitch": 1
+  },
+  "particle": {
+    "particle": "minecraft:flame",
+    "numberParticles": 25,
+    "offsetX": 1,
+    "offsetY": 1,
+    "offsetZ": 1,
+    "speed": 0,
+    "radius": 32
+  },
+  "display": {
+    "slot": -1,
+    "slots": [],
+    "item": "minecraft:emerald",
+    "displayname": "<white><gray>[<yellow>ᴄᴇʙᴏ<gray>] <red>ᴠᴏʟᴄᴀɴ",
+    "lore": [
+      "&eAñade este &dᴄᴇʙᴏ&e a una",
+      "&f喇&e y aparecerán",
+      "&ePKMs salvajes"
+    ],
+    "CustomModelData": 1,
+    "nbt": "{CustomModelData:1}"
+  },
+  "filterPokemons": {
+    "blackList": {
+      "onlyImplemented": true,
+      "allowEvolutions": false,
+      "properties": [],
+      "pokemons": [
+        "egg",
+        "pokestop"
+      ],
+      "forms": [],
+      "aspects": [],
+      "labels": [
+        "legendary",
+        "mythical",
+        "ultra_beast"
+      ],
+      "types": [],
+      "rarities": [],
+      "persistentDataMap": {
+        "example_1": [
+          "example_value_1",
+          "example_value_2"
+        ],
+        "example_2": [
+          1,
+          2,
+          3
+        ]
+      },
+      "eggGroups": []
+    },
+    "useChances": true,
+    "pokemonsChances": [
+      {
+        "pokemons": [
+          "charmander",
+          "vulpix",
+          "growlithe",
+          "ponyta",
+          "geodude",
+          "onix",
+          "rhyhorn",
+          "slugma",
+          "houndour",
+          "numel",
+          "trapinch",
+          "bagon",
+          "dratini",
+          "cyndaquil",
+          "larvitar",
+          "gible",
+          "darumaka",
+          "larvesta",
+          "growlithe_de_hisui"
+        ],
+        "chance": 70
+      },
+      {
+        "pokemons": [
+          "charmeleon",
+          "magmar",
+          "graveler",
+          "rhydon",
+          "torkoal",
+          "vibrava",
+          "shelgon",
+          "dragonair",
+          "quilava",
+          "pupitar",
+          "gabite"
+        ],
+        "chance": 20
+      },
+      {
+        "pokemons": [
+          "charizard",
+          "ninetales",
+          "arcanine",
+          "rapidash",
+          "magmortar",
+          "golem",
+          "steelix",
+          "rhyperior",
+          "magcargo",
+          "houndoom",
+          "camerupt",
+          "flygon",
+          "salamence",
+          "dragonite",
+          "typhlosion",
+          "tyranitar",
+          "garchomp",
+          "darmanitan",
+          "volcarona",
+          "arcanine_de_hisui"
+        ],
+        "chance": 10
+      }
+    ],
+    "legendarys": false
+  }
+}

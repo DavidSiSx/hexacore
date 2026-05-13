@@ -1,0 +1,156 @@
+{
+  "id": "cementerio",
+  "title": "[ᴄᴇʙᴏ] ᴄᴇᴍᴇɴᴛᴇʀɪᴏ",
+  "illusion": true,
+  "range": 10,
+  "duration": 1200,
+  "cooldown": 1300,
+  "distance": 8,
+  "minLevel": 15,
+  "maxLevel": 30,
+  "shinyRate": 8192,
+  "maxPokemons": 2,
+  "spawnCooldown": 30,
+  "sound": {
+    "variousPlayers": false,
+    "sound": "minecraft:entity.fox.death",
+    "range": 16,
+    "volume": 1,
+    "pitch": 1
+  },
+  "particle": {
+    "particle": "minecraft:happy_villager",
+    "numberParticles": 25,
+    "offsetX": 1,
+    "offsetY": 1,
+    "offsetZ": 1,
+    "speed": 0,
+    "radius": 32
+  },
+  "display": {
+    "slot": -1,
+    "slots": [],
+    "item": "minecraft:emerald",
+    "displayname": "<white><gray>[<yellow>ᴄᴇʙᴏ<gray>] <gold>ᴄᴇᴍᴇɴᴛᴇʀɪᴏ",
+    "lore": [
+      "&eAñade este &dᴄᴇʙᴏ&e a una",
+      "&f喇&e y aparecerán",
+      "&ePKMs salvajes"
+    ],
+    "CustomModelData": 1,
+    "nbt": "{CustomModelData:1}"
+  },
+  "filterPokemons": {
+    "blackList": {
+      "onlyImplemented": true,
+      "allowEvolutions": false,
+      "properties": [],
+      "pokemons": [
+        "egg",
+        "pokestop"
+      ],
+      "forms": [],
+      "aspects": [],
+      "labels": [
+        "legendary",
+        "mythical",
+        "ultra_beast"
+      ],
+      "types": [],
+      "rarities": [],
+      "persistentDataMap": {
+        "example_1": [
+          "example_value_1",
+          "example_value_2"
+        ],
+        "example_2": [
+          1,
+          2,
+          3
+        ]
+      },
+      "eggGroups": []
+    },
+    "useChances": true,
+    "pokemonsChances": [
+      {
+        "pokemons": [
+          "gastly",
+          "abra",
+          "drowzee",
+          "misdreavus",
+          "murkrow",
+          "sneasel",
+          "poochyena",
+          "shuppet",
+          "duskull",
+          "zorua",
+          "litwick",
+          "phantump",
+          "yamask",
+          "drifloon",
+          "golett",
+          "sandygast",
+          "dreepy",
+          "natu",
+          "wynaut",
+          "spoink",
+          "gothita",
+          "solosis",
+          "elgyem",
+          "pawniard",
+          "vullaby"
+        ],
+        "chance": 70
+      },
+      {
+        "pokemons": [
+          "haunter",
+          "kadabra",
+          "sableye",
+          "dusclops",
+          "absol",
+          "lampent",
+          "mimikyu",
+          "drakloak",
+          "gothorita",
+          "duosion",
+          "bisharp"
+        ],
+        "chance": 20
+      },
+      {
+        "pokemons": [
+          "gengar",
+          "alakazam",
+          "hypno",
+          "mismagius",
+          "honchkrow",
+          "umbreon",
+          "weavile",
+          "mightyena",
+          "banette",
+          "dusknoir",
+          "zoroark",
+          "chandelure",
+          "trevenant",
+          "cofagrigus",
+          "drifblim",
+          "golurk",
+          "palossand",
+          "dragapult",
+          "xatu",
+          "espeon",
+          "wobbuffet",
+          "grumpig",
+          "gothitelle",
+          "reuniclus",
+          "beheeyem",
+          "mandibuzz"
+        ],
+        "chance": 10
+      }
+    ],
+    "legendarys": false
+  }
+}

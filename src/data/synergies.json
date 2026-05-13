@@ -1,0 +1,46 @@
+{
+  "gimmicks_and_synergies": [
+    {
+      "nombre": "Costar + Commander (Flamigo + Dondozo + Tatsugiri)",
+      "formato": "VGC / Dobles",
+      "descripcion": "Tatsugiri con habilidad Commander entra al campo junto a Dondozo. Tatsugiri se traga a Dondozo, dándole a Dondozo un boost de +2 en TODAS sus estadísticas. Al turno siguiente, el compañero de Dondozo cambia por Flamigo (con la habilidad Costar y equipado con Toxic Orb). Costar copia exactamente todos los cambios de stats del aliado, haciendo que Flamigo también tenga +2 en todo inmediatamente.",
+      "counters": ["Haze (Borra los stats)", "Unaware (Ignora los boosts al recibir o hacer daño)", "Clear Smog"]
+    },
+    {
+      "nombre": "Beat Up + Justified",
+      "formato": "VGC / Dobles",
+      "descripcion": "Un Pokémon muy rápido con el movimiento Beat Up (ej. Maushold o Whimsicott) ataca a su propio compañero que tiene la habilidad Justified (ej. Annihilape, Terrakion, Lucario, Arcanine). Beat Up golpea múltiples veces muy débilmente (hasta 4-6 veces). Cada golpe activa Justified, subiendo el Ataque del compañero en +1. El resultado es un compañero con Ataque +4 o +6 en el primer turno.",
+      "counters": ["Follow Me / Rage Powder (Redirecciona el Beat Up al rival)", "Fake Out (Flinchea al usuario de Beat Up)"]
+    },
+    {
+      "nombre": "Perish Trap",
+      "formato": "VGC / Dobles / Singles",
+      "descripcion": "Uso del movimiento Perish Song combinado con una habilidad que impide escapar (Shadow Tag de Gothitelle o Arena Trap de Dugtrio) o movimientos como Mean Look/Whirlpool. En 3 turnos, todos los Pokémon en el campo se debilitarán. El usuario protege y rota sus Pokémon para sobrevivir mientras los rivales caen irremediablemente.",
+      "counters": ["VoltTurn (U-turn/Volt Switch ignoran el trap)", "Gholdengo (Good as Gold bloquea Perish Song)", "Ghost types (Inmunes al trapping)"]
+    },
+    {
+      "nombre": "Fake Out + Pivot (Intimidate Cycling)",
+      "formato": "VGC / Dobles",
+      "descripcion": "Rotación constante de Pokémon con Fake Out e Intimidate (ej. Incineroar). Entran, reducen el ataque rival, hacen flinch a una amenaza clave, y usan Parting Shot o U-turn (Pivot) para salir del campo, bajando stats o haciendo daño, solo para volver a entrar turnos después y repetir el proceso, ahogando el daño del rival.",
+      "counters": ["Inner Focus / Oblivious (Inmunes a Intimidate y Fake Out/Taunt)", "Clear Amulet (Inmune a bajadas de stats)"]
+    },
+    {
+      "nombre": "Prankster + Copycat Trick Room",
+      "formato": "VGC / Dobles",
+      "descripcion": "Un Pokémon usa Trick Room (que normalmente tiene prioridad -7). Al turno siguiente o inmediatamente después si es muy rápido, un compañero con la habilidad Prankster usa Copycat. Prankster le da prioridad +1 a Copycat. Copycat ejecuta el último movimiento usado en combate (Trick Room). Resultado: Trick Room con prioridad +1 (Revirtiendo el orden de turnos inmediatamente sin riesgo).",
+      "counters": ["Psychic Terrain (Bloquea movimientos de prioridad)", "Dark types (Inmunes a Prankster, aunque Copycat se apunta a sí mismo así que funciona)"]
+    },
+    {
+      "nombre": "F.E.A.R. (Focus Sash, Endeavor, Quick Attack, Rattata)",
+      "formato": "Singles",
+      "descripcion": "Un Pokémon nivel 1 (típicamente Rattata o Aron) equipado con Focus Sash. El rival ataca y lo deja a 1 HP gracias a la Focus Sash. El Pokémon nivel 1 usa Endeavor, igualando los HP del rival a los suyos (1 HP). Al turno siguiente, el Pokémon nivel 1 usa un ataque de prioridad (Quick Attack o Ice Shard) o daño residual de clima (Sandstorm en el caso de Aron) para noquear a un Pokémon nivel 100.",
+      "counters": ["Ghost types (Inmunes a Endeavor/Quick Attack)", "Entry Hazards (Rompen la Focus Sash al entrar)", "Multi-hit moves (Rompen la Sash y matan en un turno)"]
+    },
+    {
+      "nombre": "Gravity / No Guard + OHKO Moves",
+      "formato": "Singles / Dobles",
+      "descripcion": "Movimientos de OHKO (One-Hit KO) como Fissure, Sheer Cold o Guillotine tienen 30% de precisión. Combinados con Gravity (aumenta la precisión de todo el campo un 1.6x y tumba voladores) o la habilidad No Guard (todos los ataques aciertan siempre, usado por Machamp o a través de Skill Swap), se convierten en amenazas inevitables.",
+      "counters": ["Sturdy (Inmune a OHKO)", "Levitate / Flying (Inmune a Fissure si no hay Gravity activo)"]
+    }
+  ]
+}

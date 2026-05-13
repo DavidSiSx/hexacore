@@ -64,3 +64,44 @@ model TrazaCorreccion {
 
   @@index([procesado_por_motor])
 }
+
+/// Representa un Objeto equipable en el juego (Ej: Leftovers, Choice Band)
+model Objeto {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre      String   @unique
+  descripcion String
+  sprite_url  String?
+  atributos   Json?    // Efectos secundarios, fling power, etc.
+  created_at  DateTime @default(now())
+}
+
+/// Representa una Habilidad de un Pokémon (Ej: Intimidate, Levitate)
+model Habilidad {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre      String   @unique
+  descripcion String
+  atributos   Json?    // Flags internos mecánicos
+  created_at  DateTime @default(now())
+}
+
+/// Representa un Movimiento (Ej: Earthquake, Protect)
+model Movimiento {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre      String   @unique
+  tipo        String
+  categoria   String   // Físico, Especial, Estado
+  potencia    Int
+  precision   Int
+  descripcion String
+  atributos   Json?    // Flags mecánicos, prioridad, target (spread), etc.
+  created_at  DateTime @default(now())
+}
+
+/// Representa un Formato o Ruleset del Metajuego (Ej: VGC 2024 Reg G, OU Gen 9)
+model Formato {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre      String   @unique
+  descripcion String
+  reglas      Json     // Cláusulas, banlists, restricciones (Species Clause, etc)
+  created_at  DateTime @default(now())
+}
