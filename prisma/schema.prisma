@@ -105,3 +105,33 @@ model Formato {
   reglas      Json     // Cláusulas, banlists, restricciones (Species Clause, etc)
   created_at  DateTime @default(now())
 }
+
+/// Usuario autenticado vía Supabase Auth.
+/// El `id` coincide con el `auth.uid()` de Supabase para habilitar RLS.
+model Usuario {
+  id          String   @id @db.Uuid // Viene de Supabase Auth (auth.uid())
+  email       String   @unique
+  nombre      String
+  avatar_url  String?
+  equipos     Equipo[]
+  created_at  DateTime @default(now())
+}
+
+/// Un equipo competitivo guardado por el usuario.
+model Equipo {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre      String
+  formato     String   // "VGC Series 2", "OU", etc.
+  miembros    Json     // Array de PokemonBuild (el schema Zod)
+  estrategia  String?  // Explicación de la sinergia
+  origen      String   @default("manual") // "ia", "manual", "pokepaste", "showdown"
+  pokepaste   String?  // URL original de Pokepaste si fue importado
+
+  usuarioId   String   @db.Uuid
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([usuarioId])
+}
