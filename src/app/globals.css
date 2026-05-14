@@ -1,122 +1,88 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0a0a0f;
-  --foreground: #e8e8ed;
-  --accent-primary: #6366f1;
-  --accent-secondary: #8b5cf6;
-  --accent-glow: rgba(99, 102, 241, 0.15);
-  --surface-1: #111118;
-  --surface-2: #1a1a24;
-  --surface-3: #24243a;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-active: rgba(99, 102, 241, 0.4);
-  --text-muted: #7a7a8e;
-  --text-secondary: #a0a0b8;
-  --danger: #ef4444;
-  --success: #22c55e;
+@theme inline {
+  --color-background: #09090B;
+  --color-foreground: #FAFAFA;
+  --color-accent: #DFE104;
+  --color-muted: #27272A;
+  --color-border: #3F3F46;
+  --font-sans: var(--font-geist-sans), "Inter", "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --background: #09090B;
+  --foreground: #FAFAFA;
+  --accent: #DFE104;
+  --muted: #27272A;
+  --border: #3F3F46;
+}
+
+/* Base resets & brutalist rules */
+* {
+  border-radius: 0px !important;
+  box-shadow: none !important;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  text-transform: uppercase; /* Kinetic vibe defaults to uppercase for display */
+  letter-spacing: -0.02em; /* tracking-tighter */
+}
+
+/* Revert text-transform for normal text blocks if needed */
+p, span.normal-case, .lowercase, .capitalize, input {
+  text-transform: none;
+}
+
+/* SVG Noise Texture Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* Animations */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes hard-blink {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0.4; }
+}
+.animate-hard-blink {
+  animation: hard-blink 1s infinite step-end;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
-  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.3); }
-}
+/* Pokemon Type Colors - Solid, high contrast versions for Brutalism */
+.type-normal { background: #9299a1; color: #000; }
+.type-fire { background: #ff9c54; color: #000; }
+.type-water { background: #4d90d5; color: #000; }
+.type-grass { background: #63bb5b; color: #000; }
+.type-electric { background: #f3d23b; color: #000; }
+.type-ice { background: #74cec0; color: #000; }
+.type-fighting { background: #ce4069; color: #000; }
+.type-poison { background: #ab6ac8; color: #000; }
+.type-ground { background: #d97746; color: #000; }
+.type-flying { background: #8fa8dd; color: #000; }
+.type-psychic { background: #f97176; color: #000; }
+.type-bug { background: #90c12c; color: #000; }
+.type-rock { background: #c7b78b; color: #000; }
+.type-ghost { background: #5269ac; color: #000; }
+.type-dragon { background: #0a6dc4; color: #000; }
+.type-dark { background: #5a5366; color: #000; }
+.type-steel { background: #5a8ea1; color: #000; }
+.type-fairy { background: #ec8fe6; color: #000; }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.08), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
-}
-
-/* Stagger children */
-.stagger-children > * {
-  opacity: 0;
-  animation: fade-in 0.4s ease-out forwards;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
-
-/* Glassmorphism card */
-.glass-card {
-  background: rgba(17, 17, 24, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-.glass-card:hover {
-  border-color: var(--border-active);
-  box-shadow: 0 0 30px var(--accent-glow);
-}
-
-/* Pokemon Type Colors */
-.type-normal { background: #9299a1; }
-.type-fire { background: #ff9c54; }
-.type-water { background: #4d90d5; }
-.type-grass { background: #63bb5b; }
-.type-electric { background: #f3d23b; color: #333; }
-.type-ice { background: #74cec0; }
-.type-fighting { background: #ce4069; }
-.type-poison { background: #ab6ac8; }
-.type-ground { background: #d97746; }
-.type-flying { background: #8fa8dd; }
-.type-psychic { background: #f97176; }
-.type-bug { background: #90c12c; }
-.type-rock { background: #c7b78b; }
-.type-ghost { background: #5269ac; }
-.type-dragon { background: #0a6dc4; }
-.type-dark { background: #5a5366; }
-.type-steel { background: #5a8ea1; }
-.type-fairy { background: #ec8fe6; }
-.type-stellar { background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff); }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--surface-1); }
-::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+/* Brutalist Scrollbar */
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: var(--background); border-left: 2px solid var(--border); }
+::-webkit-scrollbar-thumb { background: var(--muted); border: 2px solid var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }

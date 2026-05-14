@@ -67,7 +67,7 @@ export async function generateTeamWithGemini(userPrompt: string, ragContext: str
     model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: teamResponseSchema,
+      responseSchema: teamResponseSchema as any,
       temperature: 0.2, // Baja temperatura para priorizar precisión mecánica sobre creatividad extrema
     },
   });

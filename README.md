@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs" />
   <img src="https://img.shields.io/badge/PostgreSQL-pgvector-316192?logo=postgresql" />
   <img src="https://img.shields.io/badge/AI-Gemini_2.5-4285F4?logo=google" />
   <img src="https://img.shields.io/badge/ORM-Prisma_7-2D3748?logo=prisma" />
@@ -45,7 +45,7 @@ Hexacore is a competitive Pokémon team-building assistant that goes far beyond 
 ┌──────────────────────────────────────────────────────────────┐
 │                        Hexacore Stack                        │
 ├───────────────────┬──────────────────────┬───────────────────┤
-│    Next.js 15     │   Supabase Postgres  │   Google Gemini   │
+│    Next.js 16     │   Supabase Postgres  │   Google Gemini   │
 │  (App Router +    │   JSONB + pgvector   │      2.5 Pro      │
 │   Server Actions) │   Prisma 7 ORM       │  Structured JSON  │
 ├───────────────────┴──────────────────────┴───────────────────┤
@@ -57,6 +57,12 @@ Hexacore is a competitive Pokémon team-building assistant that goes far beyond 
 
 The seed pipeline (`prisma/seed.ts`) performs a **Multi-layer enrichment** for every Pokémon, Item, Ability, and Move, combined with static dictionaries containing game mechanics (Priority Brackets, Weather, Terastallization) and high-level synergies (e.g. Costar + Commander).
 
+### Hexacore Premium (v2.0 Update)
+We have completely overhauled Hexacore to its Premium version, focusing on three core pillars:
+1. **Kinetic Typography & Brutalism:** A highly aggressive, high-contrast visual identity. Zero border-radius, harsh binary animations (hard-blinks), solid colors, and an SVG `feTurbulence` noise texture overlay. Atomic primitives like `<KineticInput>` and `<KineticMarquee>` drive the UI.
+2. **Native i18n & SEO:** Migrated from a client-side `LangProvider` to a Next.js App Router directory-based `/[lang]/` architecture with static dictionaries. This guarantees zero hydration flashes and perfect localized SEO indexing.
+3. **Bulletproof Security:** Eradicated SQL injection vulnerabilities in `pgvector` raw queries by implementing strict Zod schema allowlisting for database filters.
+
 ### Roadmap
 
 #### ✅ Phase 1 & 1.5 — Database Foundation & Knowledge Vault
@@ -65,23 +71,29 @@ The seed pipeline (`prisma/seed.ts`) performs a **Multi-layer enrichment** for e
 - [x] Full seed pipeline: 1,468 Pokémon × 4 data layers (Showdown + Smogon + PokeAPI + Math/Gimmicks)
 - [x] Local embedding model (all-MiniLM-L6-v2, 384d)
 
-#### 🔄 Phase 2 — Controlled Generation (Structured Outputs)
+#### ✅ Phase 2 — Hexacore Premium Refactor
+- [x] Security: Zod Allowlisting for pgvector raw queries.
+- [x] Architecture: Native App Router i18n (`/[lang]`) and Middleware.
+- [x] Aesthetics: Kinetic Typography & Brutalism design system (`globals.css`, `tailwind v4`).
+- [x] Primitives: Kinetic Components & Reveal Cards.
+
+#### 🔄 Phase 3 — Controlled Generation (Structured Outputs)
 - [ ] Zod schemas for competitive builds (moves, EVs, item, ability, nature)
 - [ ] Gemini 2.5 client with `response_schema` enforcement
 - [ ] RAG retrieval function (cosine similarity via pgvector)
 
-#### ⬜ Phase 3 & 4 — Telemetry & RLHF Feedback
+#### ⬜ Phase 4 — Telemetry & RLHF Feedback
 - [ ] Server-Sent Events endpoint for streaming AI reasoning
 - [ ] User correction traces (`TrazaCorreccion`) & fine-tuning loop.
 
 ### Getting Started
 ```bash
-git clone https://github.com/YOUR_USERNAME/hexacore.git
+git clone https://github.com/DavidSiSx/hexacore.git
 cd hexacore
 npm install
 cp .env.example .env # Set DATABASE_URL and DIRECT_URL
 npx prisma db push
-npx tsx prisma/seed.ts # Seeds the RAG database (Takes ~30 min)
+npx tsx prisma/seed.ts # Seeds the RAG database & native tags
 npm run dev
 ```
 
@@ -98,13 +110,19 @@ Hexacore es un asistente de construcción de equipos competitivos de Pokémon qu
 - **Un modelo híbrido relacional/documental** (PostgreSQL + JSONB + pgvector) que maneja Pokémon oficiales, formas regionales, Megaevoluciones, Gigamax y futuros Fakemons.
 - **Telemetría en tiempo real (SSE)** para transmitir el razonamiento de la IA al frontend mientras "piensa".
 
+### Hexacore Premium (Actualización v2.0)
+Hemos renovado completamente Hexacore a su versión Premium, centrándonos en tres pilares:
+1. **Kinetic Typography y Brutalismo:** Una identidad visual agresiva y de alto contraste. Cero bordes redondeados, animaciones binarias severas, colores sólidos y una textura de ruido SVG `feTurbulence`.
+2. **i18n Nativo y SEO:** Migración de un `LangProvider` del cliente a una arquitectura nativa de Next.js `/[lang]/` con diccionarios estáticos. Esto garantiza cero destellos de hidratación y un SEO localizado perfecto.
+3. **Seguridad Blindada:** Erradicación de vulnerabilidades de inyección SQL en consultas crudas de `pgvector` implementando una estricta validación Zod (Allowlisting).
+
 ### Arquitectura y Pipeline RAG
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                        Stack Hexacore                        │
 ├───────────────────┬──────────────────────┬───────────────────┤
-│    Next.js 15     │   Supabase Postgres  │   Google Gemini   │
+│    Next.js 16     │   Supabase Postgres  │   Google Gemini   │
 │  (App Router +    │   JSONB + pgvector   │      2.5 Pro      │
 │   Server Actions) │   Prisma 7 ORM       │  Structured JSON  │
 ├───────────────────┴──────────────────────┴───────────────────┤
@@ -114,33 +132,38 @@ Hexacore es un asistente de construcción de equipos competitivos de Pokémon qu
 └──────────────────────────────────────────────────────────────┘
 ```
 
-El script de inicialización (`prisma/seed.ts`) realiza un **enriquecimiento multicapa** para cada Pokémon, Objeto, Habilidad y Movimiento, combinado con diccionarios estáticos que contienen las matemáticas del juego (Brackets de Prioridad, Climas, Teracristalización) y sinergias de alto nivel (ej. Costar + Commander).
+El script de inicialización (`prisma/seed.ts`) realiza un **enriquecimiento multicapa** para cada Pokémon, Objeto, Habilidad y Movimiento, combinado con diccionarios estáticos que contienen las matemáticas del juego y sinergias.
 
 ### Roadmap
 
 #### ✅ Fase 1 y 1.5 — Fundación de Base de Datos y Bóveda RAG
 - [x] Diseño de esquema híbrido (`Criatura`, `Objeto`, `Habilidad`, `Movimiento`, `Formato`)
 - [x] Migración de Prisma 7 con Supabase pgvector
-- [x] Pipeline de sembrado: 1,468 Pokémon × 4 capas de datos (Showdown + Smogon + PokeAPI + Math/Gimmicks)
-- [x] Modelo local de incrustación (all-MiniLM-L6-v2, 384d)
+- [x] Pipeline de sembrado: 1,468 Pokémon × 4 capas de datos
 
-#### 🔄 Fase 2 — Generación Controlada (Structured Outputs)
-- [ ] Esquemas Zod para builds competitivas (movimientos, EVs, objeto, habilidad, naturaleza)
+#### ✅ Fase 2 — Refactor Hexacore Premium
+- [x] Seguridad: Allowlisting con Zod para consultas crudas.
+- [x] Arquitectura: i18n nativo (`/[lang]`) y Middleware.
+- [x] Estética: Sistema Kinetic Typography y Brutalismo.
+- [x] Primitivas: Componentes Kinetic y Tarjetas Reveal.
+
+#### 🔄 Fase 3 — Generación Controlada (Structured Outputs)
+- [ ] Esquemas Zod para builds competitivas
 - [ ] Cliente Gemini 2.5 con validación `response_schema`
-- [ ] Función de recuperación RAG (similitud del coseno vía pgvector)
+- [ ] Función de recuperación RAG vía pgvector
 
-#### ⬜ Fase 3 y 4 — Telemetría y Feedback RLHF
-- [ ] Endpoint de Server-Sent Events para streaming del razonamiento IA
-- [ ] Trazas de corrección del usuario (`TrazaCorreccion`) y ciclo de fine-tuning.
+#### ⬜ Fase 4 — Telemetría y Feedback RLHF
+- [ ] Endpoint de Server-Sent Events
+- [ ] Trazas de corrección del usuario (`TrazaCorreccion`)
 
 ### Cómo Empezar
 ```bash
-git clone https://github.com/YOUR_USERNAME/hexacore.git
+git clone https://github.com/DavidSiSx/hexacore.git
 cd hexacore
 npm install
 cp .env.example .env # Configura DATABASE_URL y DIRECT_URL
 npx prisma db push
-npx tsx prisma/seed.ts # Llena la base de datos RAG (Toma ~30 min)
+npx tsx prisma/seed.ts # Llena la base de datos RAG
 npm run dev
 ```
 

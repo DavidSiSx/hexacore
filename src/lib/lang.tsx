@@ -47,3 +47,9 @@ export function LangToggle() {
     </button>
   );
 }
+
+export function T({ es, en }: { es: string; en: string }) {
+  const { t } = useLang();
+  return <>{t(es, en)}</>;
+}
+

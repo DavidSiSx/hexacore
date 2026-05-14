@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "encyclopedia": "ENCICLOPEDIA",
+    "overview": "INICIO",
+    "pokemon": "POKÉMON",
+    "moves": "MOVIMIENTOS",
+    "abilities": "HABILIDADES",
+    "items": "OBJETOS",
+    "type_chart": "TABLA TIPOS",
+    "fakemons": "FAKEMONS",
+    "calculator": "CALCULADORA",
+    "builder": "TEAM BUILDER"
+  },
+  "search": {
+    "placeholder": "BUSCAR POKÉMON..."
+  },
+  "filters": {
+    "all_types": "TODOS LOS TIPOS",
+    "all_gens": "TODAS LAS GENS",
+    "all_tags": "TODAS LAS ETIQUETAS"
+  },
+  "pokemon": {
+    "hp": "HP",
+    "atk": "ATAQUE",
+    "def": "DEFENSA",
+    "spa": "ATQ. ESP",
+    "spd": "DEF. ESP",
+    "spe": "VELOCIDAD"
+  }
+}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { buildTeamAction } from "@/app/actions/team";
 import { Team } from "@/lib/schemas/team";
-import PokemonCard from "@/app/components/PokemonCard";
+import TeamPokemonCard from "@/app/components/TeamPokemonCard";
 
 export default function TeamBuilder() {
   const [query, setQuery] = useState("");
@@ -139,7 +139,7 @@ export default function TeamBuilder() {
           {/* Pokemon Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
             {team.members.map((member, i) => (
-              <PokemonCard key={i} pokemon={member} index={i} />
+              <TeamPokemonCard key={i} pokemon={member} index={i} />
             ))}
           </div>
         </div>
