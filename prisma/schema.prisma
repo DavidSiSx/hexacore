@@ -11,24 +11,22 @@ datasource db {
 /// Representa tanto Pokémon oficiales como Fakemons creados por la comunidad.
 /// Utiliza un modelo híbrido: metadatos relacionales para ordenamiento y JSONB para atributos dinámicos.
 model Criatura {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombre               String   @unique
-  slug                 String   @unique
-  autor                String?  @default("oficial")
-  es_fakemon           Boolean  @default(false)
-  popularidad_score    Float    @default(0.0)
-  aprobado_comunidad   Boolean  @default(true)
+  id                   String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre               String     @unique
+  slug                 String     @unique
+  autor                String?    @default("oficial")
+  es_fakemon           Boolean    @default(false)
+  popularidad_score    Float      @default(0.0)
+  aprobado_comunidad   Boolean    @default(true)
   atributos_de_combate Json
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
+  created_at           DateTime   @default(now())
+  updated_at           DateTime   @updatedAt
   categorias           Json?
   descripciones        Json?
   nombres              Json?
-
-  // Herencia de formas: Permite que Gmax/Mega hereden stats de la especie base.
-  base_species_id     String?  @db.Uuid
-  base_species        Criatura? @relation("FormInheritance", fields: [base_species_id], references: [id])
-  forms               Criatura[] @relation("FormInheritance")
+  base_species_id      String?    @db.Uuid
+  base_species         Criatura?  @relation("FormInheritance", fields: [base_species_id], references: [id])
+  forms                Criatura[] @relation("FormInheritance")
 
   @@index([atributos_de_combate(ops: JsonbPathOps)], map: "idx_criatura_atributos_gin", type: Gin)
   @@index([popularidad_score(sort: Desc)])
