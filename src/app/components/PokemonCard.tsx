@@ -43,7 +43,7 @@ export function PokemonCard({ pokemon, lang, index, activeTier }: PokemonCardPro
 
   return (
     <Link
-      href={`/${lang}/pokedex/pokemon/${encodeURIComponent(pokemon.nombre)}`}
+      href={`/${lang}/pokedex/pokemon/${pokemon.slug}`}
       className={`group relative block w-full h-48 border-4 ${colors.border} ${colors.bg} overflow-hidden transition-all hover:border-black hover:translate-x-1 hover:-translate-y-1`}
     >
       {/* Banner Esquinero Brutalista de Uso Empírico Showdown */}

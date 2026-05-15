@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 export interface MoveResult {
   id: string;
   nombre: string;
+  slug: string;
   nombres?: any;
   tipo: string;
   categoria: string;
@@ -70,6 +71,7 @@ export async function getMoveBySlug(slug: string): Promise<MoveResult | null> {
 export interface AbilityResult {
   id: string;
   nombre: string;
+  slug: string;
   nombres?: any;
   descripciones?: any;
   atributos: any;
@@ -116,6 +118,7 @@ export async function getAbilityBySlug(slug: string): Promise<AbilityResult | nu
 export interface ItemResult {
   id: string;
   nombre: string;
+  slug: string;
   nombres?: any;
   descripciones?: any;
   sprite_url: string | null;

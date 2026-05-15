@@ -83,16 +83,20 @@ export function getShowdownSpriteUrl(species: string, shiny: boolean = false, an
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${shiny ? "shiny/" : ""}${POKEAPI_FALLBACK[cleaned]}.png`;
   }
 
-  // Gmax and Mega forms usually only exist in the animated (ani) folder on Showdown
+  // Gmax and Mega forms are most reliable in the 'home' folder (static high-quality)
   const isSpecialForm = cleaned.includes("-gmax") || cleaned.includes("-mega");
-  const forceAnimated = isSpecialForm ? true : animated;
+  
+  if (isSpecialForm) {
+    const homePath = shiny ? 'home-shiny' : 'home';
+    return `https://play.pokemonshowdown.com/sprites/${homePath}/${cleaned}.png`;
+  }
 
-  // Animated 3D (ani) or Static (dex)
-  const path = forceAnimated 
+  // Standard forms: Animated 3D (ani) or Static (dex)
+  const path = animated 
     ? (shiny ? 'ani-shiny' : 'ani') 
     : (shiny ? 'dex-shiny' : 'dex');
   
-  const ext = forceAnimated ? 'gif' : 'png';
+  const ext = animated ? 'gif' : 'png';
 
   return `https://play.pokemonshowdown.com/sprites/${path}/${cleaned}.${ext}`;
 }

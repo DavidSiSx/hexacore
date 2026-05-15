@@ -9,6 +9,7 @@ export interface LocalizedStrings {
 
 export interface PokemonAbilityDetail {
   nombre: string;
+  slug: string;
   nombres: LocalizedStrings;
   descripciones: LocalizedStrings;
 }
@@ -16,6 +17,7 @@ export interface PokemonAbilityDetail {
 export interface PokemonSearchResult {
   id: string;
   nombre: string;
+  slug: string;
   nombres: LocalizedStrings;
   descripciones: LocalizedStrings;
   categorias: LocalizedStrings;
@@ -152,6 +154,46 @@ function buildWhereClause(filters?: PokemonFilters) {
     params.push(filters.tiers);
   }
 
+  if (filters?.abilities && filters.abilities.length > 0) {
+    conditions.push(`"atributos_de_combate"->'habilidades' ?| ARRAY[${filters.abilities.map(() => `$${idx++}`).join(",")}]`);
+    filters.abilities.forEach(ability => params.push(ability));
+  }
+
+  if (filters?.stats) {
+    for (const [stat, range] of Object.entries(filters.stats)) {
+      if (!range) continue;
+      const { min, max } = range as { min?: number; max?: number };
+      
+      let statSql: string;
+      if (stat === "bst") {
+        statSql = STAT_KEYS.map(key => `("atributos_de_combate"->'stats_base'->>'${key}')::int`).join(" + ");
+      } else {
+        statSql = `("atributos_de_combate"->'stats_base'->>'${stat}')::int`;
+      }
+
+      if (min !== undefined) {
+        conditions.push(`(${statSql}) >= $${idx++}`);
+        params.push(min);
+      }
+      if (max !== undefined) {
+        conditions.push(`(${statSql}) <= $${idx++}`);
+        params.push(max);
+      }
+    }
+  }
+
+  if (filters?.weight) {
+    const { min, max } = filters.weight;
+    if (min !== undefined) {
+      conditions.push(`("atributos_de_combate"->>'peso')::float >= $${idx++}`);
+      params.push(min);
+    }
+    if (max !== undefined) {
+      conditions.push(`("atributos_de_combate"->>'peso')::float <= $${idx++}`);
+      params.push(max);
+    }
+  }
+
   return { conditions, params, nextParamIdx: idx };
 }
 
@@ -186,6 +228,7 @@ export async function getPokemonBySlug(slug: string): Promise<PokemonSearchResul
       });
       result.habilidades_detalles = details.map(detail => ({
         nombre: detail.nombre,
+        slug: detail.slug,
         nombres: detail.nombres as unknown as LocalizedStrings,
         descripciones: detail.descripciones as unknown as LocalizedStrings
       }));
@@ -201,6 +244,7 @@ function mapToSearchResult(record: Record<string, unknown>): PokemonSearchResult
   return {
     id: String(record.id),
     nombre: String(record.nombre),
+    slug: String(record.slug || record.nombre),
     nombres: (record.nombres as unknown as LocalizedStrings) || { en: "", es: "" },
     descripciones: (record.descripciones as unknown as LocalizedStrings) || { en: "", es: "" },
     categorias: (record.categorias as unknown as LocalizedStrings) || { en: "", es: "" },
