@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  extensions = [vector]
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions"), vector]
 }
 
 /// Representa tanto Pokémon oficiales como Fakemons creados por la comunidad.
@@ -13,59 +13,49 @@ datasource db {
 model Criatura {
   id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre               String   @unique
-  autor                String?  @default("oficial") // "oficial" para Pokémon, UUID/nombre para Fakemons
+  slug                 String   @unique
+  autor                String?  @default("oficial")
   es_fakemon           Boolean  @default(false)
   popularidad_score    Float    @default(0.0)
   aprobado_comunidad   Boolean  @default(true)
-  
-  // Campos bilingües
-  nombres              Json?
-  descripciones        Json?
-  categorias           Json?
-
-  // Carga útil dinámica: stats base, tipos, mecánicas exóticas, umbrales.
   atributos_de_combate Json
-
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
+  categorias           Json?
+  descripciones        Json?
+  nombres              Json?
 
-  // Índice GIN para búsquedas ultra-rápidas dentro del JSONB
-  @@index([atributos_de_combate(ops: JsonbPathOps)], type: Gin, map: "idx_criatura_atributos_gin")
+  // Herencia de formas: Permite que Gmax/Mega hereden stats de la especie base.
+  base_species_id     String?  @db.Uuid
+  base_species        Criatura? @relation("FormInheritance", fields: [base_species_id], references: [id])
+  forms               Criatura[] @relation("FormInheritance")
+
+  @@index([atributos_de_combate(ops: JsonbPathOps)], map: "idx_criatura_atributos_gin", type: Gin)
   @@index([popularidad_score(sort: Desc)])
 }
 
 /// Almacena el conocimiento semántico del metajuego, incluyendo reportes de torneos (chunks) y reflexiones autónomas.
 model DocumentoConocimiento {
   id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  doc_type   String                 // Ej: "chunk_torneo", "analisis_matematico", "reflexion"
+  doc_type   String
   contenido  String
-  
-  // Metadatos de alta densidad: generación, formato, arquetipo estructural
   metadatos  Json
-  
-  // Vector de incrustación semántica (384 dimensiones para all-MiniLM-L6-v2)
-  embedding  Unsupported("vector(384)")?
+  embedding  Unsupported("vector")?
+  created_at DateTime               @default(now())
 
-  created_at DateTime @default(now())
-
-  // Índice para similitud vectorial
-  @@index([embedding]) 
+  @@index([embedding])
 }
 
 /// Sustrato de Inteligencia de Trazas: Registra la "Verdad Terrestre" cuando un usuario corrige a la IA.
 model TrazaCorreccion {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  session_id        String
-  
-  prompt_original   String
-  contexto_rag_usado Json     // Qué fragmentos de conocimiento se le inyectaron a la IA
-  
-  equipo_sugerido   Json     // Lo que la IA generó (Structured Output original)
-  equipo_corregido  Json     // Lo que el usuario finalmente guardó/exportó (Ground Truth)
-  
-  procesado_por_motor Boolean @default(false) // Flag para el Motor de Reflexión
-  
-  created_at        DateTime @default(now())
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id          String
+  prompt_original     String
+  contexto_rag_usado  Json
+  equipo_sugerido     Json
+  equipo_corregido    Json
+  procesado_por_motor Boolean  @default(false)
+  created_at          DateTime @default(now())
 
   @@index([procesado_por_motor])
 }
@@ -74,35 +64,38 @@ model TrazaCorreccion {
 model Objeto {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre        String   @unique
-  nombres       Json?    // { "en": "Leftovers", "es": "Restos" }
-  descripciones Json?    // { "en": "...", "es": "..." }
+  slug          String   @unique
   sprite_url    String?
-  atributos     Json?    // Efectos secundarios, fling power, etc.
+  atributos     Json?
   created_at    DateTime @default(now())
+  descripciones Json?
+  nombres       Json?
 }
 
 /// Representa una Habilidad de un Pokémon (Ej: Intimidate, Levitate)
 model Habilidad {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre        String   @unique
-  nombres       Json?
-  descripciones Json?
-  atributos     Json?    // Flags internos mecánicos
+  slug          String   @unique
+  atributos     Json?
   created_at    DateTime @default(now())
+  descripciones Json?
+  nombres       Json?
 }
 
 /// Representa un Movimiento (Ej: Earthquake, Protect)
 model Movimiento {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre        String   @unique
-  nombres       Json?
+  slug          String   @unique
   tipo          String
-  categoria     String   // Físico, Especial, Estado
+  categoria     String
   potencia      Int
   precision     Int
-  descripciones Json?
-  atributos     Json?    // Flags mecánicos, prioridad, target (spread), etc.
+  atributos     Json?
   created_at    DateTime @default(now())
+  descripciones Json?
+  nombres       Json?
 }
 
 /// Representa un Formato o Ruleset del Metajuego (Ej: VGC 2024 Reg G, OU Gen 9)
@@ -110,36 +103,34 @@ model Formato {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre      String   @unique
   descripcion String
-  reglas      Json     // Cláusulas, banlists, restricciones (Species Clause, etc)
+  reglas      Json
   created_at  DateTime @default(now())
 }
 
 /// Usuario autenticado vía Supabase Auth.
 /// El `id` coincide con el `auth.uid()` de Supabase para habilitar RLS.
 model Usuario {
-  id          String   @id @db.Uuid // Viene de Supabase Auth (auth.uid())
-  email       String   @unique
-  nombre      String
-  avatar_url  String?
-  equipos     Equipo[]
-  created_at  DateTime @default(now())
+  id         String   @id @db.Uuid
+  email      String   @unique
+  nombre     String
+  avatar_url String?
+  created_at DateTime @default(now())
+  equipos    Equipo[]
 }
 
 /// Un equipo competitivo guardado por el usuario.
 model Equipo {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombre      String
-  formato     String   // "VGC Series 2", "OU", etc.
-  miembros    Json     // Array de PokemonBuild (el schema Zod)
-  estrategia  String?  // Explicación de la sinergia
-  origen      String   @default("manual") // "ia", "manual", "pokepaste", "showdown"
-  pokepaste   String?  // URL original de Pokepaste si fue importado
-
-  usuarioId   String   @db.Uuid
-  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
-
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre     String
+  formato    String
+  miembros   Json
+  estrategia String?
+  origen     String   @default("manual")
+  pokepaste  String?
+  usuarioId  String   @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId])
 }
