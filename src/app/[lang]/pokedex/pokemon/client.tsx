@@ -142,7 +142,7 @@ export default function PokemonGridClient({
       {/* Advanced Filters Sidebar Tematizado */}
       <PokedexFilterSidebar 
         lang={lang} 
-        dict={dict} 
+        dictionary={dict} 
         filters={filters} 
         setFilters={setFilters} 
         clearFilters={clearFilters} 

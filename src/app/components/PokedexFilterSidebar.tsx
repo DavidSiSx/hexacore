@@ -35,7 +35,7 @@ export function PokedexFilterSidebar({
       <div className={`p-6 border-b-4 ${activeTheme.borderClass} flex flex-col gap-4 ${currentTheme === 'quartz' ? 'bg-zinc-200/50' : 'bg-black/40'}`}>
         <div className="flex items-center justify-between">
           <h2 className={`text-xl font-black uppercase tracking-tighter flex items-center gap-2 ${activeTheme.accentClass}`}>
-            <Filter strokeWidth={3} className="w-5 h-5" /> {dictionary.filters?.title || (lang === "es" ? "FILTROS" : "FILTERS")}
+            <Filter strokeWidth={3} className="w-5 h-5" /> {dictionary?.filters?.title || (lang === "es" ? "FILTROS" : "FILTERS")}
           </h2>
           {hasFilters && (
             <button onClick={clearFilters} className="text-red-500 hover:bg-red-500 hover:text-white font-black uppercase text-xs p-1 px-2 transition-none border-2 border-transparent hover:border-[var(--border)]">

@@ -19,7 +19,7 @@ export function TypeSection({ lang, dictionary, filters, setFilters, mode }: Fil
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">
-        {dictionary.filters?.types || (lang === "es" ? "TIPOS" : "TYPES")}
+        {dictionary?.filters?.types || (lang === "es" ? "TIPOS" : "TYPES")}
       </h3>
       {mode === "advanced" && (
         <div className="flex gap-2 mb-2">

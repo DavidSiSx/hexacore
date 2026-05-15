@@ -30,7 +30,7 @@ export function TagSection({ lang, dictionary, filters, setFilters }: FilterProp
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">
-        {dictionary.filters?.categories || (lang === "es" ? "CATEGORÍAS" : "CATEGORY")}
+        {dictionary?.filters?.categories || (lang === "es" ? "CATEGORÍAS" : "CATEGORY")}
       </h3>
       <div className="flex flex-wrap gap-2">
         {TAGS.map(tagItem => {
