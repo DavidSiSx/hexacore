@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/app/components/Shared/Navbar";
+import { ThemeProvider } from "@/app/components/Shared/ThemeProvider";
 import { getDictionary } from "@/lib/dictionaries";
 
-const inter = Inter({
+const outfit = Outfit({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -20,16 +21,18 @@ export default async function RootLayout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ lang: "es" | "en" }>;
+  params: Promise<{ lang: string }>;
 }>) {
   const { lang } = await params;
-  const dict = await getDictionary(lang);
+  const dict = await getDictionary(lang as "es" | "en");
 
   return (
-    <html lang={lang} className={`${inter.variable} h-full antialiased`}>
+    <html lang={lang} className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <Navbar lang={lang} dict={dict} />
-        <main className="flex flex-col flex-1">{children}</main>
+        <ThemeProvider>
+          <Navbar lang={lang} dict={dict} />
+          <main className="flex flex-col flex-1">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );

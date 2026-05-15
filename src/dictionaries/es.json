@@ -26,5 +26,9 @@
     "spa": "ATQ. ESP",
     "spd": "DEF. ESP",
     "spe": "VELOCIDAD"
+  },
+  "pagination": {
+    "prev": "ANTERIOR",
+    "next": "SIGUIENTE"
   }
 }

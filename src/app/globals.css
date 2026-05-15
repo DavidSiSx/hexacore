@@ -18,6 +18,52 @@
   --border: #3F3F46;
 }
 
+/* Temas Globales en Cascada (Armonía Absoluta) */
+.theme-neon {
+  --background: #09090B;
+  --foreground: #FAFAFA;
+  --accent: #DFE104;
+  --accent-foreground: #000000;
+  --border: #DFE104;
+  --muted: #18181B;
+}
+
+.theme-gba {
+  --background: #022C22;
+  --foreground: #ECFDF5;
+  --accent: #00FF66;
+  --accent-foreground: #000000;
+  --border: #00FF66;
+  --muted: #064E3B;
+}
+
+.theme-crimson {
+  --background: #4C0519;
+  --foreground: #FFF1F2;
+  --accent: #FF3366;
+  --accent-foreground: #FFFFFF;
+  --border: #FF3366;
+  --muted: #881337;
+}
+
+.theme-quartz {
+  --background: #F4F4F5;
+  --foreground: #09090B;
+  --accent: #000000;
+  --accent-foreground: #FFFFFF;
+  --border: #000000;
+  --muted: #E4E4E7;
+}
+
+.theme-cyberpunk {
+  --background: #020617;
+  --foreground: #ECFEFF;
+  --accent: #00FFFF;
+  --accent-foreground: #000000;
+  --border: #00FFFF;
+  --muted: #1E1B4B;
+}
+
 /* Base resets & brutalist rules */
 * {
   border-radius: 0px !important;

@@ -26,5 +26,9 @@
     "spa": "SP. ATK",
     "spd": "SP. DEF",
     "spe": "SPEED"
+  },
+  "pagination": {
+    "prev": "PREV",
+    "next": "NEXT"
   }
 }

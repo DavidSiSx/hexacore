@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getAllFakemons, type PokemonSearchResult } from "@/app/actions/pokedex";
 import { PokemonCard } from "@/app/components/PokemonCard";
 import { useLang, T } from "@/lib/lang";
 
-export default function FakemonsPage({ params }: { params: { lang: string } }) {
-  const { lang } = params;
+export default function FakemonsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = use(params);
   const { t } = useLang();
   const [fakemons, setFakemons] = useState<PokemonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
