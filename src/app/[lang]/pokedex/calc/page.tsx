@@ -1,17 +1,34 @@
 "use client";
 
-import { useState, useEffect, use, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, use } from "react";
 import { calculate, Generations, Pokemon, Move, Field } from "@smogon/calc";
-import type { Generation, StatsTable, StatusName, Terrain, Weather, GameType } from "@smogon/calc/dist/data/interface";
-import { POKEMON_TYPES, NATURES, getEffectiveness } from "@/lib/pokemon";
-import { getAllPokemon, type PokemonSearchResult } from "@/app/actions/pokedex";
-import { getAllMoves, type MoveResult, getAllItems, type ItemResult, getAllAbilities, type AbilityResult } from "@/app/actions/encyclopedia";
-import { getStandardSet } from "@/app/actions/metagame";
+import type { StatsTable, StatusName, Terrain, Weather, GameType } from "@smogon/calc/dist/data/interface";
+import { Dex } from "@pkmn/dex";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
-import { Calculator, Zap, Shield, Swords, Sparkles, Sun, CloudRain, Wind, Snowflake, Target, RefreshCw, ChevronDown, Flame, Droplets, Leaf, Mountain, Star, RotateCcw } from "lucide-react";
+import { Calculator, RotateCcw, ChevronDown, Search } from "lucide-react";
 
-// Initialize generation 9
+// Initialize generation 9 for @smogon/calc
 const gen = Generations.get(9);
+
+// Get all Pokemon from @pkmn/dex
+const allPokemon = Array.from(Dex.species.all())
+  .filter(p => p.exists && !p.isNonstandard && p.num > 0)
+  .sort((a, b) => a.num - b.num);
+
+// Get all moves from @pkmn/dex
+const allMoves = Array.from(Dex.moves.all())
+  .filter(m => m.exists && !m.isNonstandard && m.basePower >= 0)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Get all items from @pkmn/dex
+const allItems = Array.from(Dex.items.all())
+  .filter(i => i.exists && !i.isNonstandard)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Get all abilities from @pkmn/dex
+const allAbilities = Array.from(Dex.abilities.all())
+  .filter(a => a.exists && !a.isNonstandard)
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 // Status conditions available
 const STATUS_CONDITIONS: StatusName[] = ["Healthy", "Paralysis", "Poison", "Burn", "Sleep", "Freeze"];
@@ -22,12 +39,44 @@ const WEATHERS: (Weather | "")[] = ["", "Sun", "Rain", "Sand", "Snow", "Harsh Su
 // Field terrains
 const TERRAINS: (Terrain | "")[] = ["", "Electric", "Grassy", "Psychic", "Misty"];
 
+// Natures
+const NATURES = [
+  "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
+  "Bold", "Docile", "Relaxed", "Impish", "Lax",
+  "Timid", "Hasty", "Serious", "Jolly", "Naive",
+  "Modest", "Mild", "Quiet", "Bashful", "Rash",
+  "Calm", "Gentle", "Sassy", "Careful", "Quirky"
+];
+
+// Pokemon types
+const POKEMON_TYPES = [
+  "normal", "fire", "water", "grass", "electric", "ice",
+  "fighting", "poison", "ground", "flying", "psychic", "bug",
+  "rock", "ghost", "dragon", "dark", "steel", "fairy"
+];
+
 // Boost stages
 const BOOST_STAGES = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
 
+interface PokemonData {
+  name: string;
+  types: string[];
+  baseStats: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number };
+  abilities: string[];
+  sprite: string;
+}
+
+interface MoveData {
+  name: string;
+  type: string;
+  category: string;
+  basePower: number;
+  accuracy: number;
+}
+
 interface SideState {
   species: string;
-  speciesData: PokemonSearchResult | null;
+  speciesData: PokemonData | null;
   level: number;
   evs: StatsTable;
   ivs: StatsTable;
@@ -38,22 +87,14 @@ interface SideState {
   item: string;
   status: StatusName;
   currentHP: number;
-  maxHP: number;
-  moves: (MoveResult | null)[];
+  moves: MoveData[];
   selectedMoveIndex: number;
-  isTransformed: boolean;
-  isSaltCure: boolean;
-  alliesCollapsed: number;
 }
 
 interface FieldSideState {
   spikes: number;
   stealthRock: boolean;
   steelsurge: boolean;
-  vineLash: boolean;
-  wildfire: boolean;
-  cannonade: boolean;
-  volcalith: boolean;
   reflect: boolean;
   lightScreen: boolean;
   auroraVeil: boolean;
@@ -62,15 +103,12 @@ interface FieldSideState {
   helpingHand: boolean;
   isBattery: boolean;
   isPowerSpot: boolean;
-  isSwitching: "out" | "in" | null;
 }
 
 interface FieldState {
   gameType: GameType;
   weather: Weather | "";
-  weatherTurns: number;
   terrain: Terrain | "";
-  terrainTurns: number;
   isGravity: boolean;
   isMagicRoom: boolean;
   isWonderRoom: boolean;
@@ -85,19 +123,10 @@ interface FieldState {
   defenderSide: FieldSideState;
 }
 
-const defaultEVs: StatsTable = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-const maxEVs: StatsTable = { hp: 252, atk: 252, def: 0, spa: 0, spd: 0, spe: 4 };
-const defaultIVs: StatsTable = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
-const defaultBoosts: StatsTable = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-
 const defaultSideState: FieldSideState = {
   spikes: 0,
   stealthRock: false,
   steelsurge: false,
-  vineLash: false,
-  wildfire: false,
-  cannonade: false,
-  volcalith: false,
   reflect: false,
   lightScreen: false,
   auroraVeil: false,
@@ -106,48 +135,67 @@ const defaultSideState: FieldSideState = {
   helpingHand: false,
   isBattery: false,
   isPowerSpot: false,
-  isSwitching: null,
 };
 
-const createDefaultSide = (): SideState => ({
+const createDefaultSide = (nature: string = "Adamant", evs?: Partial<StatsTable>): SideState => ({
   species: "",
   speciesData: null,
   level: 50,
-  evs: { ...maxEVs },
-  ivs: { ...defaultIVs },
-  nature: "Adamant",
-  boosts: { ...defaultBoosts },
+  evs: { hp: 252, atk: 252, def: 0, spa: 0, spd: 0, spe: 4, ...evs },
+  ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
+  nature,
+  boosts: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   teraType: "",
   ability: "",
   item: "",
   status: "Healthy",
   currentHP: 100,
-  maxHP: 100,
-  moves: [null, null, null, null],
+  moves: [],
   selectedMoveIndex: 0,
-  isTransformed: false,
-  isSaltCure: false,
-  alliesCollapsed: 0,
 });
+
+// Convert @pkmn/dex Pokemon to our format
+function dexToPokemonData(species: typeof allPokemon[0]): PokemonData {
+  return {
+    name: species.name,
+    types: species.types,
+    baseStats: {
+      hp: species.baseStats.hp,
+      atk: species.baseStats.atk,
+      def: species.baseStats.def,
+      spa: species.baseStats.spa,
+      spd: species.baseStats.spd,
+      spe: species.baseStats.spe,
+    },
+    abilities: Object.values(species.abilities).filter(Boolean) as string[],
+    sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${species.num}.png`,
+  };
+}
+
+// Convert @pkmn/dex Move to our format
+function dexToMoveData(move: typeof allMoves[0]): MoveData {
+  return {
+    name: move.name,
+    type: move.type,
+    category: move.category,
+    basePower: move.basePower,
+    accuracy: move.accuracy === true ? 100 : (move.accuracy || 0),
+  };
+}
 
 export default function DamageCalcPage({ params }: { params: Promise<{ lang: string }> }) {
   const resolvedParams = use(params);
-  const lang = resolvedParams.lang || "es";
   const { activeTheme } = useTheme();
 
-  const [attacker, setAttacker] = useState<SideState>(createDefaultSide());
-  const [defender, setDefender] = useState<SideState>({
-    ...createDefaultSide(),
-    evs: { hp: 252, atk: 0, def: 252, spa: 0, spd: 4, spe: 0 },
-    nature: "Bold",
-  });
+  const [attacker, setAttacker] = useState<SideState>(createDefaultSide("Adamant"));
+  const [defender, setDefender] = useState<SideState>(
+    createDefaultSide("Bold", { hp: 252, atk: 0, def: 252, spa: 0, spd: 4, spe: 0 })
+  );
 
   const [field, setField] = useState<FieldState>({
     gameType: "Singles",
     weather: "",
-    weatherTurns: 0,
     terrain: "",
-    terrainTurns: 0,
     isGravity: false,
     isMagicRoom: false,
     isWonderRoom: false,
@@ -183,7 +231,7 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         ability: attacker.ability || undefined,
         item: attacker.item || undefined,
         status: attacker.status === "Healthy" ? undefined : attacker.status.toLowerCase() as any,
-        curHP: Math.round((attacker.currentHP / 100) * attacker.maxHP),
+        curHP: Math.round((attacker.currentHP / 100) * attackerPokemon.maxHP()),
       });
 
       const defenderPokemon = new Pokemon(gen, defender.species, {
@@ -196,10 +244,9 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         ability: defender.ability || undefined,
         item: defender.item || undefined,
         status: defender.status === "Healthy" ? undefined : defender.status.toLowerCase() as any,
-        curHP: Math.round((defender.currentHP / 100) * defender.maxHP),
       });
 
-      const move = new Move(gen, selectedMove.nombre, {
+      const move = new Move(gen, selectedMove.name, {
         isCrit: crit,
       });
 
@@ -240,7 +287,6 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
       min = max = damage;
     } else if (Array.isArray(damage)) {
       if (Array.isArray(damage[0])) {
-        // Multi-hit move
         const flatDamage = (damage as number[][]).flat();
         min = Math.min(...flatDamage);
         max = Math.max(...flatDamage);
@@ -255,11 +301,12 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     const maxPct = ((max / defHP) * 100).toFixed(1);
 
     let koChance = "";
-    const kochance = damageResult.kpiChance();
-    if (kochance) {
-      koChance = kochance;
-    } else {
-      // Manual KO chance calculation
+    try {
+      const kochance = damageResult.kpiChance();
+      if (kochance) koChance = kochance;
+    } catch {}
+    
+    if (!koChance) {
       if (min >= defHP) koChance = "guaranteed OHKO";
       else if (max >= defHP) koChance = "possible OHKO";
       else if (max * 2 >= defHP) koChance = "2HKO";
@@ -278,57 +325,36 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
   }, [damageResult]);
 
   // Pokemon search component
-  function PokemonSearch({ side, setSide, label }: { side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>>; label: string }) {
+  function PokemonSearch({ side, setSide, label }: { 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>>; 
+    label: string 
+  }) {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<PokemonSearchResult[]>([]);
     const [isOpen, setIsOpen] = useState(false);
 
-    useEffect(() => {
-      if (query.length >= 2) {
-        getAllPokemon(1, 8, { searchQuery: query }).then(res => {
-          setResults(res.pokemon || []);
-          setIsOpen(true);
-        });
-      } else {
-        setResults([]);
-        setIsOpen(false);
-      }
+    const results = useMemo(() => {
+      if (query.length < 2) return [];
+      const q = query.toLowerCase();
+      return allPokemon
+        .filter(p => p.name.toLowerCase().includes(q))
+        .slice(0, 10)
+        .map(dexToPokemonData);
     }, [query]);
 
-    const selectPokemon = async (pokemon: PokemonSearchResult) => {
-      const stats = pokemon.stats_base;
-      const maxHP = calculateHP(stats.hp || 100, side.evs.hp, side.ivs.hp, side.level);
+    const selectPokemon = (pokemon: PokemonData) => {
+      const species = Dex.species.get(pokemon.name);
       
       setSide(prev => ({
         ...prev,
-        species: pokemon.nombre,
+        species: pokemon.name,
         speciesData: pokemon,
-        ability: pokemon.habilidades[0] || "",
-        maxHP,
-        currentHP: 100,
+        ability: pokemon.abilities[0] || "",
+        moves: [],
       }));
       
       setQuery("");
-      setResults([]);
       setIsOpen(false);
-
-      // Try to load Smogon set
-      const set = await getStandardSet(pokemon.nombre);
-      if (set) {
-        const moves: (MoveResult | null)[] = [null, null, null, null];
-        for (let i = 0; i < set.moves.length && i < 4; i++) {
-          const moveRes = await getAllMoves(1, 1, { searchQuery: set.moves[i], lang });
-          if (moveRes.moves[0]) moves[i] = moveRes.moves[0];
-        }
-        setSide(prev => ({
-          ...prev,
-          evs: set.evs,
-          nature: set.nature,
-          ability: set.ability,
-          item: set.item,
-          moves,
-        }));
-      }
     };
 
     return (
@@ -337,27 +363,33 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         {side.species ? (
           <div className={`flex items-center justify-between p-3 bg-zinc-900 border-2 ${activeTheme.borderClass}`}>
             <div className="flex items-center gap-3">
-              {side.speciesData?.sprite_url && (
-                <img src={side.speciesData.sprite_url} alt={side.species} className="w-12 h-12 object-contain pixelated" />
+              {side.speciesData?.sprite && (
+                <img src={side.speciesData.sprite} alt={side.species} className="w-12 h-12 object-contain pixelated" />
               )}
               <div>
                 <span className="text-white font-black text-sm uppercase">{side.species}</span>
-                {side.speciesData?.tipos && (
+                {side.speciesData?.types && (
                   <div className="flex gap-1 mt-1">
-                    {side.speciesData.tipos.map(t => (
-                      <span key={t} className={`text-[8px] font-bold px-1 py-0.5 rounded ${getTypeBg(t)}`}>{t}</span>
+                    {side.speciesData.types.map(t => (
+                      <span key={t} className={`text-[8px] font-bold px-1 py-0.5 rounded text-white ${getTypeBg(t)}`}>{t}</span>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-            <button onClick={() => setSide(prev => ({ ...prev, species: "", speciesData: null, moves: [null, null, null, null] }))} className="text-red-500 font-bold text-lg hover:text-red-400">x</button>
+            <button 
+              onClick={() => setSide(prev => ({ ...prev, species: "", speciesData: null, moves: [] }))} 
+              className="text-red-500 font-bold text-lg hover:text-red-400"
+            >
+              x
+            </button>
           </div>
         ) : (
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
             placeholder="Search Pokemon..."
             className={`w-full bg-zinc-950 border-2 ${activeTheme.borderClass} px-3 py-3 text-white font-bold text-sm focus:outline-none`}
           />
@@ -365,9 +397,18 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         {isOpen && results.length > 0 && (
           <div className="absolute z-50 w-full bg-black border-2 border-current max-h-64 overflow-y-auto">
             {results.map(p => (
-              <div key={p.id} onClick={() => selectPokemon(p)} className="flex items-center gap-3 p-2 hover:bg-zinc-800 cursor-pointer border-b border-zinc-900">
-                <img src={p.sprite_url} alt={p.nombre} className="w-8 h-8 object-contain pixelated" />
-                <span className="text-sm font-bold uppercase">{p.nombre}</span>
+              <div 
+                key={p.name} 
+                onClick={() => selectPokemon(p)} 
+                className="flex items-center gap-3 p-2 hover:bg-zinc-800 cursor-pointer border-b border-zinc-900"
+              >
+                <img src={p.sprite} alt={p.name} className="w-8 h-8 object-contain pixelated" />
+                <span className="text-sm font-bold uppercase">{p.name}</span>
+                <div className="flex gap-1 ml-auto">
+                  {p.types.map(t => (
+                    <span key={t} className={`text-[8px] font-bold px-1 py-0.5 rounded text-white ${getTypeBg(t)}`}>{t}</span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -376,34 +417,33 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     );
   }
 
-  // Move slot component
-  function MoveSlot({ index, side, setSide }: { index: number; side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>> }) {
+  // Move search component
+  function MoveSearch({ index, side, setSide }: { 
+    index: number; 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>> 
+  }) {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<MoveResult[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const move = side.moves[index];
     const isSelected = side.selectedMoveIndex === index;
 
-    useEffect(() => {
-      if (query.length >= 2) {
-        getAllMoves(1, 6, { searchQuery: query, lang }).then(res => {
-          setResults(res.moves || []);
-          setIsOpen(true);
-        });
-      } else {
-        setResults([]);
-        setIsOpen(false);
-      }
+    const results = useMemo(() => {
+      if (query.length < 2) return [];
+      const q = query.toLowerCase();
+      return allMoves
+        .filter(m => m.name.toLowerCase().includes(q) && m.basePower > 0)
+        .slice(0, 8)
+        .map(dexToMoveData);
     }, [query]);
 
-    const selectMove = (m: MoveResult) => {
+    const selectMove = (m: MoveData) => {
       setSide(prev => {
         const newMoves = [...prev.moves];
         newMoves[index] = m;
         return { ...prev, moves: newMoves, selectedMoveIndex: index };
       });
       setQuery("");
-      setResults([]);
       setIsOpen(false);
     };
 
@@ -417,19 +457,32 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
             }`}
           >
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${getTypeBg(move.tipo)}`} />
-              <span className="text-xs font-bold uppercase truncate">{move.nombre}</span>
+              <span className={`w-2 h-2 rounded-full ${getTypeBg(move.type)}`} />
+              <span className="text-xs font-bold uppercase truncate">{move.name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono opacity-60">{move.potencia || "-"}</span>
-              <button onClick={(e) => { e.stopPropagation(); setSide(prev => { const newMoves = [...prev.moves]; newMoves[index] = null; return { ...prev, moves: newMoves }; }); }} className="text-red-500 text-xs">x</button>
+              <span className="text-[10px] font-mono opacity-60">{move.basePower || "-"}</span>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setSide(prev => { 
+                    const newMoves = [...prev.moves]; 
+                    newMoves[index] = undefined as any; 
+                    return { ...prev, moves: newMoves.filter(Boolean) }; 
+                  }); 
+                }} 
+                className="text-red-500 text-xs"
+              >
+                x
+              </button>
             </div>
           </div>
         ) : (
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
             placeholder={`Move ${index + 1}`}
             className="w-full bg-zinc-900 border-2 border-zinc-800 px-2 py-2 text-xs font-bold focus:outline-none focus:border-current"
           />
@@ -437,14 +490,18 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         {isOpen && results.length > 0 && (
           <div className="absolute z-50 w-full bg-black border-2 border-current max-h-48 overflow-y-auto">
             {results.map(m => (
-              <div key={m.id} onClick={() => selectMove(m)} className="flex items-center justify-between p-2 hover:bg-zinc-800 cursor-pointer border-b border-zinc-900">
+              <div 
+                key={m.name} 
+                onClick={() => selectMove(m)} 
+                className="flex items-center justify-between p-2 hover:bg-zinc-800 cursor-pointer border-b border-zinc-900"
+              >
                 <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${getTypeBg(m.tipo)}`} />
-                  <span className="text-xs font-bold uppercase">{m.nombre}</span>
+                  <span className={`w-2 h-2 rounded-full ${getTypeBg(m.type)}`} />
+                  <span className="text-xs font-bold uppercase">{m.name}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] opacity-60">
-                  <span>{m.categoria}</span>
-                  <span>{m.potencia || "-"}</span>
+                  <span>{m.category}</span>
+                  <span>{m.basePower || "-"}</span>
                 </div>
               </div>
             ))}
@@ -454,10 +511,115 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     );
   }
 
+  // Item search component
+  function ItemSearch({ side, setSide }: { 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>> 
+  }) {
+    const [query, setQuery] = useState("");
+    const [isOpen, setIsOpen] = useState(false);
+
+    const results = useMemo(() => {
+      if (query.length < 2) return [];
+      const q = query.toLowerCase();
+      return allItems
+        .filter(i => i.name.toLowerCase().includes(q))
+        .slice(0, 8);
+    }, [query]);
+
+    return (
+      <div className="relative">
+        <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Item</label>
+        {side.item ? (
+          <div className="flex items-center justify-between bg-zinc-900 border border-current/30 px-2 py-1">
+            <span className="text-xs font-bold truncate">{side.item}</span>
+            <button onClick={() => setSide(prev => ({ ...prev, item: "" }))} className="text-red-500 text-xs">x</button>
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search..."
+            className="w-full bg-black border border-current/30 px-2 py-1 text-xs focus:outline-none"
+          />
+        )}
+        {isOpen && results.length > 0 && (
+          <div className="absolute z-50 w-full bg-black border border-current max-h-32 overflow-y-auto">
+            {results.map(item => (
+              <div 
+                key={item.name} 
+                onClick={() => { setSide(prev => ({ ...prev, item: item.name })); setQuery(""); setIsOpen(false); }} 
+                className="px-2 py-1 hover:bg-zinc-800 cursor-pointer text-xs font-bold border-b border-zinc-900"
+              >
+                {item.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Ability search component
+  function AbilitySearch({ side, setSide }: { 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>> 
+  }) {
+    const [query, setQuery] = useState("");
+    const [isOpen, setIsOpen] = useState(false);
+
+    const results = useMemo(() => {
+      if (query.length < 2) return [];
+      const q = query.toLowerCase();
+      return allAbilities
+        .filter(a => a.name.toLowerCase().includes(q))
+        .slice(0, 8);
+    }, [query]);
+
+    return (
+      <div className="relative">
+        <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Ability</label>
+        {side.ability ? (
+          <div className="flex items-center justify-between bg-zinc-900 border border-current/30 px-2 py-1">
+            <span className="text-xs font-bold truncate">{side.ability}</span>
+            <button onClick={() => setSide(prev => ({ ...prev, ability: "" }))} className="text-red-500 text-xs">x</button>
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search..."
+            className="w-full bg-black border border-current/30 px-2 py-1 text-xs focus:outline-none"
+          />
+        )}
+        {isOpen && results.length > 0 && (
+          <div className="absolute z-50 w-full bg-black border border-current max-h-32 overflow-y-auto">
+            {results.map(ab => (
+              <div 
+                key={ab.name} 
+                onClick={() => { setSide(prev => ({ ...prev, ability: ab.name })); setQuery(""); setIsOpen(false); }} 
+                className="px-2 py-1 hover:bg-zinc-800 cursor-pointer text-xs font-bold border-b border-zinc-900"
+              >
+                {ab.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Stats panel
-  function StatsPanel({ side, setSide }: { side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>> }) {
+  function StatsPanel({ side, setSide }: { 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>> 
+  }) {
     const stats = ["hp", "atk", "def", "spa", "spd", "spe"] as const;
-    const statLabels = { hp: "HP", atk: "Atk", def: "Def", spa: "SpA", spd: "SpD", spe: "Spe" };
+    const statLabels = { hp: "HP", atk: "ATK", def: "DEF", spa: "SPA", spd: "SPD", spe: "SPE" };
     
     const totalEVs = Object.values(side.evs).reduce((a, b) => a + b, 0);
     const remainingEVs = 508 - totalEVs;
@@ -480,7 +642,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
                 min={0}
                 max={252}
                 value={side.evs[stat]}
-                onChange={(e) => setSide(prev => ({ ...prev, evs: { ...prev.evs, [stat]: Math.min(252, Math.max(0, +e.target.value)) } }))}
+                onChange={(e) => setSide(prev => ({ 
+                  ...prev, 
+                  evs: { ...prev.evs, [stat]: Math.min(252, Math.max(0, +e.target.value)) } 
+                }))}
                 className="w-full bg-black border border-current/30 px-2 py-1 text-xs font-mono focus:outline-none focus:border-current"
               />
             </div>
@@ -496,7 +661,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
                 <label className="text-[9px] font-black opacity-70 uppercase">{statLabels[stat]}</label>
                 <select
                   value={side.boosts[stat]}
-                  onChange={(e) => setSide(prev => ({ ...prev, boosts: { ...prev.boosts, [stat]: +e.target.value } }))}
+                  onChange={(e) => setSide(prev => ({ 
+                    ...prev, 
+                    boosts: { ...prev.boosts, [stat]: +e.target.value } 
+                  }))}
                   className="w-full bg-black border border-current/30 px-1 py-1 text-[10px] font-bold focus:outline-none"
                 >
                   {BOOST_STAGES.map(s => (
@@ -511,100 +679,13 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     );
   }
 
-  // Item search
-  function ItemSearch({ side, setSide }: { side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>> }) {
-    const [query, setQuery] = useState("");
-    const [results, setResults] = useState<ItemResult[]>([]);
-    const [isOpen, setIsOpen] = useState(false);
-
-    useEffect(() => {
-      if (query.length >= 2) {
-        getAllItems(1, 6, { searchQuery: query, lang }).then(res => {
-          setResults(res.items || []);
-          setIsOpen(true);
-        });
-      } else {
-        setResults([]);
-        setIsOpen(false);
-      }
-    }, [query]);
-
-    return (
-      <div className="relative">
-        <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Item</label>
-        {side.item ? (
-          <div className="flex items-center justify-between bg-zinc-900 border border-current/30 px-2 py-1">
-            <span className="text-xs font-bold truncate">{side.item}</span>
-            <button onClick={() => setSide(prev => ({ ...prev, item: "" }))} className="text-red-500 text-xs">x</button>
-          </div>
-        ) : (
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
-            className="w-full bg-black border border-current/30 px-2 py-1 text-xs focus:outline-none"
-          />
-        )}
-        {isOpen && results.length > 0 && (
-          <div className="absolute z-50 w-full bg-black border border-current max-h-32 overflow-y-auto">
-            {results.map(item => (
-              <div key={item.id} onClick={() => { setSide(prev => ({ ...prev, item: item.nombre })); setQuery(""); setIsOpen(false); }} className="px-2 py-1 hover:bg-zinc-800 cursor-pointer text-xs font-bold border-b border-zinc-900">{item.nombre}</div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Ability search
-  function AbilitySearch({ side, setSide }: { side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>> }) {
-    const [query, setQuery] = useState("");
-    const [results, setResults] = useState<AbilityResult[]>([]);
-    const [isOpen, setIsOpen] = useState(false);
-
-    useEffect(() => {
-      if (query.length >= 2) {
-        getAllAbilities(1, 6, { searchQuery: query, lang }).then(res => {
-          setResults(res.abilities || []);
-          setIsOpen(true);
-        });
-      } else {
-        setResults([]);
-        setIsOpen(false);
-      }
-    }, [query]);
-
-    return (
-      <div className="relative">
-        <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Ability</label>
-        {side.ability ? (
-          <div className="flex items-center justify-between bg-zinc-900 border border-current/30 px-2 py-1">
-            <span className="text-xs font-bold truncate">{side.ability}</span>
-            <button onClick={() => setSide(prev => ({ ...prev, ability: "" }))} className="text-red-500 text-xs">x</button>
-          </div>
-        ) : (
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
-            className="w-full bg-black border border-current/30 px-2 py-1 text-xs focus:outline-none"
-          />
-        )}
-        {isOpen && results.length > 0 && (
-          <div className="absolute z-50 w-full bg-black border border-current max-h-32 overflow-y-auto">
-            {results.map(ab => (
-              <div key={ab.id} onClick={() => { setSide(prev => ({ ...prev, ability: ab.nombre })); setQuery(""); setIsOpen(false); }} className="px-2 py-1 hover:bg-zinc-800 cursor-pointer text-xs font-bold border-b border-zinc-900">{ab.nombre}</div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Pokemon panel (combines all controls for one side)
-  function PokemonPanel({ side, setSide, label, isAttacker }: { side: SideState; setSide: React.Dispatch<React.SetStateAction<SideState>>; label: string; isAttacker: boolean }) {
+  // Pokemon panel
+  function PokemonPanel({ side, setSide, label, isAttacker }: { 
+    side: SideState; 
+    setSide: React.Dispatch<React.SetStateAction<SideState>>; 
+    label: string; 
+    isAttacker: boolean 
+  }) {
     return (
       <div className={`p-4 md:p-6 border-4 ${activeTheme.borderClass} bg-black/40 flex flex-col gap-4`}>
         <PokemonSearch side={side} setSide={setSide} label={label} />
@@ -679,13 +760,13 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
           </div>
         </div>
 
-        {/* Moves (only for attacker) */}
+        {/* Moves */}
         {isAttacker && (
           <div className="pt-3 border-t border-current/10">
             <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Moves (click to select)</span>
             <div className="grid grid-cols-2 gap-2">
               {[0, 1, 2, 3].map(i => (
-                <MoveSlot key={i} index={i} side={side} setSide={setSide} />
+                <MoveSearch key={i} index={i} side={side} setSide={setSide} />
               ))}
             </div>
           </div>
@@ -703,8 +784,12 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
       <div className="bg-zinc-900/50 border-2 border-current/30 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-sm font-black uppercase">Field Options</span>
-          <button onClick={() => setShowFieldOptions(!showFieldOptions)} className="text-xs font-bold opacity-60 hover:opacity-100">
-            {showFieldOptions ? "Hide" : "Show"} <ChevronDown className={`inline w-4 h-4 transition-transform ${showFieldOptions ? "rotate-180" : ""}`} />
+          <button 
+            onClick={() => setShowFieldOptions(!showFieldOptions)} 
+            className="text-xs font-bold opacity-60 hover:opacity-100"
+          >
+            {showFieldOptions ? "Hide" : "Show"} 
+            <ChevronDown className={`inline w-4 h-4 transition-transform ${showFieldOptions ? "rotate-180" : ""}`} />
           </button>
         </div>
 
@@ -714,20 +799,32 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Format</label>
-                <select value={field.gameType} onChange={(e) => setField(prev => ({ ...prev, gameType: e.target.value as GameType }))} className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none">
+                <select 
+                  value={field.gameType} 
+                  onChange={(e) => setField(prev => ({ ...prev, gameType: e.target.value as GameType }))} 
+                  className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none"
+                >
                   <option value="Singles">Singles</option>
                   <option value="Doubles">Doubles</option>
                 </select>
               </div>
               <div>
                 <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Weather</label>
-                <select value={field.weather} onChange={(e) => setField(prev => ({ ...prev, weather: e.target.value as Weather | "" }))} className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none">
+                <select 
+                  value={field.weather} 
+                  onChange={(e) => setField(prev => ({ ...prev, weather: e.target.value as Weather | "" }))} 
+                  className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none"
+                >
                   {WEATHERS.map(w => <option key={w || "none"} value={w}>{w || "None"}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-[9px] font-black opacity-50 uppercase block mb-1">Terrain</label>
-                <select value={field.terrain} onChange={(e) => setField(prev => ({ ...prev, terrain: e.target.value as Terrain | "" }))} className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none">
+                <select 
+                  value={field.terrain} 
+                  onChange={(e) => setField(prev => ({ ...prev, terrain: e.target.value as Terrain | "" }))} 
+                  className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none"
+                >
                   {TERRAINS.map(t => <option key={t || "none"} value={t}>{t || "None"}</option>)}
                 </select>
               </div>
@@ -738,19 +835,51 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Attacker Side</span>
               <div className="grid grid-cols-4 gap-2">
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.attackerSide.helpingHand} onChange={(e) => setField(prev => ({ ...prev, attackerSide: { ...prev.attackerSide, helpingHand: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.attackerSide.helpingHand} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      attackerSide: { ...prev.attackerSide, helpingHand: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Helping Hand
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.attackerSide.tailwind} onChange={(e) => setField(prev => ({ ...prev, attackerSide: { ...prev.attackerSide, tailwind: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.attackerSide.tailwind} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      attackerSide: { ...prev.attackerSide, tailwind: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Tailwind
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.attackerSide.isBattery} onChange={(e) => setField(prev => ({ ...prev, attackerSide: { ...prev.attackerSide, isBattery: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.attackerSide.isBattery} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      attackerSide: { ...prev.attackerSide, isBattery: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Battery
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.attackerSide.isPowerSpot} onChange={(e) => setField(prev => ({ ...prev, attackerSide: { ...prev.attackerSide, isPowerSpot: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.attackerSide.isPowerSpot} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      attackerSide: { ...prev.attackerSide, isPowerSpot: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Power Spot
                 </label>
               </div>
@@ -761,19 +890,51 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Defender Side</span>
               <div className="grid grid-cols-4 gap-2">
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.defenderSide.reflect} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, reflect: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.defenderSide.reflect} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, reflect: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Reflect
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.defenderSide.lightScreen} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, lightScreen: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.defenderSide.lightScreen} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, lightScreen: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Light Screen
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.defenderSide.auroraVeil} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, auroraVeil: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.defenderSide.auroraVeil} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, auroraVeil: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Aurora Veil
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.defenderSide.friendGuard} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, friendGuard: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.defenderSide.friendGuard} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, friendGuard: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Friend Guard
                 </label>
               </div>
@@ -781,12 +942,27 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               {/* Hazards */}
               <div className="grid grid-cols-4 gap-2 mt-2">
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.defenderSide.stealthRock} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, stealthRock: e.target.checked } }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.defenderSide.stealthRock} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, stealthRock: e.target.checked } 
+                    }))} 
+                    className="w-3 h-3" 
+                  />
                   Stealth Rock
                 </label>
                 <div className="flex items-center gap-1">
                   <span className="text-[10px] font-bold">Spikes:</span>
-                  <select value={field.defenderSide.spikes} onChange={(e) => setField(prev => ({ ...prev, defenderSide: { ...prev.defenderSide, spikes: +e.target.value } }))} className="bg-black border border-current/30 px-1 py-0.5 text-[10px]">
+                  <select 
+                    value={field.defenderSide.spikes} 
+                    onChange={(e) => setField(prev => ({ 
+                      ...prev, 
+                      defenderSide: { ...prev.defenderSide, spikes: +e.target.value } 
+                    }))} 
+                    className="bg-black border border-current/30 px-1 py-0.5 text-[10px]"
+                  >
                     {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
@@ -798,19 +974,39 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Global Effects</span>
               <div className="grid grid-cols-4 gap-2">
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isGravity} onChange={(e) => setField(prev => ({ ...prev, isGravity: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isGravity} 
+                    onChange={(e) => setField(prev => ({ ...prev, isGravity: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Gravity
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isMagicRoom} onChange={(e) => setField(prev => ({ ...prev, isMagicRoom: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isMagicRoom} 
+                    onChange={(e) => setField(prev => ({ ...prev, isMagicRoom: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Magic Room
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isWonderRoom} onChange={(e) => setField(prev => ({ ...prev, isWonderRoom: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isWonderRoom} 
+                    onChange={(e) => setField(prev => ({ ...prev, isWonderRoom: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Wonder Room
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={crit} onChange={(e) => setCrit(e.target.checked)} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={crit} 
+                    onChange={(e) => setCrit(e.target.checked)} 
+                    className="w-3 h-3" 
+                  />
                   Critical Hit
                 </label>
               </div>
@@ -818,22 +1014,42 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
 
             {/* Ruin abilities */}
             <div className="border-t border-current/10 pt-3">
-              <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Ruin Abilities (Treasures of Ruin)</span>
+              <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Ruin Abilities</span>
               <div className="grid grid-cols-4 gap-2">
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isBeadsOfRuin} onChange={(e) => setField(prev => ({ ...prev, isBeadsOfRuin: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isBeadsOfRuin} 
+                    onChange={(e) => setField(prev => ({ ...prev, isBeadsOfRuin: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Beads of Ruin
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isTabletsOfRuin} onChange={(e) => setField(prev => ({ ...prev, isTabletsOfRuin: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isTabletsOfRuin} 
+                    onChange={(e) => setField(prev => ({ ...prev, isTabletsOfRuin: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Tablets of Ruin
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isSwordOfRuin} onChange={(e) => setField(prev => ({ ...prev, isSwordOfRuin: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isSwordOfRuin} 
+                    onChange={(e) => setField(prev => ({ ...prev, isSwordOfRuin: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Sword of Ruin
                 </label>
                 <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input type="checkbox" checked={field.isVesselOfRuin} onChange={(e) => setField(prev => ({ ...prev, isVesselOfRuin: e.target.checked }))} className="w-3 h-3" />
+                  <input 
+                    type="checkbox" 
+                    checked={field.isVesselOfRuin} 
+                    onChange={(e) => setField(prev => ({ ...prev, isVesselOfRuin: e.target.checked }))} 
+                    className="w-3 h-3" 
+                  />
                   Vessel of Ruin
                 </label>
               </div>
@@ -877,7 +1093,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         <PokemonPanel side={attacker} setSide={setAttacker} label="Attacker" isAttacker={true} />
         
         {/* Swap button */}
-        <button onClick={swapSides} className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full border-4 ${activeTheme.borderClass} bg-black flex items-center justify-center hover:scale-110 transition-transform hidden lg:flex`}>
+        <button 
+          onClick={swapSides} 
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full border-4 ${activeTheme.borderClass} bg-black flex items-center justify-center hover:scale-110 transition-transform hidden lg:flex`}
+        >
           <RotateCcw className={`w-5 h-5 ${activeTheme.accentClass}`} />
         </button>
         
@@ -885,7 +1104,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
       </div>
 
       {/* Swap button mobile */}
-      <button onClick={swapSides} className={`lg:hidden w-full py-3 border-2 ${activeTheme.borderClass} bg-black font-black uppercase text-sm flex items-center justify-center gap-2`}>
+      <button 
+        onClick={swapSides} 
+        className={`lg:hidden w-full py-3 border-2 ${activeTheme.borderClass} bg-black font-black uppercase text-sm flex items-center justify-center gap-2`}
+      >
         <RotateCcw className={`w-4 h-4 ${activeTheme.accentClass}`} />
         Swap Attacker / Defender
       </button>
@@ -919,12 +1141,7 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
   );
 }
 
-// Helper functions
-function calculateHP(base: number, ev: number, iv: number, level: number): number {
-  if (base === 1) return 1; // Shedinja
-  return Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + level + 10;
-}
-
+// Helper function to get type background color
 function getTypeBg(type: string): string {
   const colors: Record<string, string> = {
     Normal: "bg-gray-400",
