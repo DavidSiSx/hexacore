@@ -248,6 +248,7 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         status: attackerState.status === "Healthy" ? undefined : attackerState.status.toLowerCase() as any,
       });
 
+      // Create defender Pokemon first without curHP to get maxHP
       const defenderPokemon = new Pokemon(gen, defenderState.species, {
         level: defenderState.level,
         evs: defenderState.evs,
@@ -258,8 +259,12 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         ability: defenderState.ability || undefined,
         item: defenderState.item || undefined,
         status: defenderState.status === "Healthy" ? undefined : defenderState.status.toLowerCase() as any,
-        curHP: Math.round((defenderState.currentHP / 100) * defenderPokemon.maxHP()),
       });
+      
+      // Now set current HP based on percentage
+      if (defenderState.currentHP < 100) {
+        defenderPokemon.curHP = Math.round((defenderState.currentHP / 100) * defenderPokemon.maxHP());
+      }
 
       const move = new Move(gen, moveData.name, {
         isCrit: isCrit,
