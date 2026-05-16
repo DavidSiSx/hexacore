@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo, useCallback, use } from "react";
+import { useState, useMemo, use } from "react";
 import { calculate, Generations, Pokemon, Move, Field } from "@smogon/calc";
 import type { StatsTable, StatusName, Terrain, Weather, GameType } from "@smogon/calc/dist/data/interface";
 import { Dex } from "@pkmn/dex";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
-import { Calculator, RotateCcw, ChevronDown, Search } from "lucide-react";
+import { Calculator, RotateCcw, ChevronDown, Swords, Shield, Zap, Sun, Cloud, Snowflake, Wind } from "lucide-react";
 
 // Initialize generation 9 for @smogon/calc
 const gen = Generations.get(9);
@@ -103,6 +103,15 @@ interface FieldSideState {
   helpingHand: boolean;
   isBattery: boolean;
   isPowerSpot: boolean;
+  vineLash: boolean;
+  wildfire: boolean;
+  cannonade: boolean;
+  volcalith: boolean;
+  isSeeded: boolean;
+  isSaltCure: boolean;
+  isForesight: boolean;
+  isFlowerGift: boolean;
+  isSwitching: "out" | "in" | null;
 }
 
 interface FieldState {
@@ -135,6 +144,15 @@ const defaultSideState: FieldSideState = {
   helpingHand: false,
   isBattery: false,
   isPowerSpot: false,
+  vineLash: false,
+  wildfire: false,
+  cannonade: false,
+  volcalith: false,
+  isSeeded: false,
+  isSaltCure: false,
+  isForesight: false,
+  isFlowerGift: false,
+  isSwitching: null,
 };
 
 const createDefaultSide = (nature: string = "Adamant", evs?: Partial<StatsTable>): SideState => ({
@@ -211,69 +229,132 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
   });
 
   const [crit, setCrit] = useState(false);
-  const [showFieldOptions, setShowFieldOptions] = useState(false);
+  const [showFieldOptions, setShowFieldOptions] = useState(true);
 
-  // Calculate damage using @smogon/calc
-  const damageResult = useMemo(() => {
-    if (!attacker.species || !defender.species) return null;
-    
-    const selectedMove = attacker.moves[attacker.selectedMoveIndex];
-    if (!selectedMove) return null;
+  // Calculate damage for a specific move
+  const calculateMoveResult = (moveData: MoveData | undefined, attackerState: SideState, defenderState: SideState, fieldState: FieldState, isCrit: boolean) => {
+    if (!attackerState.species || !defenderState.species || !moveData) return null;
 
     try {
-      const attackerPokemon = new Pokemon(gen, attacker.species, {
-        level: attacker.level,
-        evs: attacker.evs,
-        ivs: attacker.ivs,
-        nature: attacker.nature,
-        boosts: attacker.boosts,
-        teraType: attacker.teraType || undefined,
-        ability: attacker.ability || undefined,
-        item: attacker.item || undefined,
-        status: attacker.status === "Healthy" ? undefined : attacker.status.toLowerCase() as any,
-        curHP: Math.round((attacker.currentHP / 100) * attackerPokemon.maxHP()),
+      const attackerPokemon = new Pokemon(gen, attackerState.species, {
+        level: attackerState.level,
+        evs: attackerState.evs,
+        ivs: attackerState.ivs,
+        nature: attackerState.nature,
+        boosts: attackerState.boosts,
+        teraType: attackerState.teraType || undefined,
+        ability: attackerState.ability || undefined,
+        item: attackerState.item || undefined,
+        status: attackerState.status === "Healthy" ? undefined : attackerState.status.toLowerCase() as any,
       });
 
-      const defenderPokemon = new Pokemon(gen, defender.species, {
-        level: defender.level,
-        evs: defender.evs,
-        ivs: defender.ivs,
-        nature: defender.nature,
-        boosts: defender.boosts,
-        teraType: defender.teraType || undefined,
-        ability: defender.ability || undefined,
-        item: defender.item || undefined,
-        status: defender.status === "Healthy" ? undefined : defender.status.toLowerCase() as any,
+      // Create defender Pokemon first without curHP to get maxHP
+      const defenderPokemon = new Pokemon(gen, defenderState.species, {
+        level: defenderState.level,
+        evs: defenderState.evs,
+        ivs: defenderState.ivs,
+        nature: defenderState.nature,
+        boosts: defenderState.boosts,
+        teraType: defenderState.teraType || undefined,
+        ability: defenderState.ability || undefined,
+        item: defenderState.item || undefined,
+        status: defenderState.status === "Healthy" ? undefined : defenderState.status.toLowerCase() as any,
       });
+      
+      // Now set current HP based on percentage
+      if (defenderState.currentHP < 100) {
+        defenderPokemon.curHP = Math.round((defenderState.currentHP / 100) * defenderPokemon.maxHP());
+      }
 
-      const move = new Move(gen, selectedMove.name, {
-        isCrit: crit,
+      const move = new Move(gen, moveData.name, {
+        isCrit: isCrit,
       });
 
       const calcField = new Field({
-        gameType: field.gameType,
-        weather: field.weather || undefined,
-        terrain: field.terrain || undefined,
-        isGravity: field.isGravity,
-        isMagicRoom: field.isMagicRoom,
-        isWonderRoom: field.isWonderRoom,
-        isAuraBreak: field.isAuraBreak,
-        isFairyAura: field.isFairyAura,
-        isDarkAura: field.isDarkAura,
-        isBeadsOfRuin: field.isBeadsOfRuin,
-        isTabletsOfRuin: field.isTabletsOfRuin,
-        isSwordOfRuin: field.isSwordOfRuin,
-        isVesselOfRuin: field.isVesselOfRuin,
-        attackerSide: field.attackerSide,
-        defenderSide: field.defenderSide,
+        gameType: fieldState.gameType,
+        weather: fieldState.weather || undefined,
+        terrain: fieldState.terrain || undefined,
+        isGravity: fieldState.isGravity,
+        isMagicRoom: fieldState.isMagicRoom,
+        isWonderRoom: fieldState.isWonderRoom,
+        isAuraBreak: fieldState.isAuraBreak,
+        isFairyAura: fieldState.isFairyAura,
+        isDarkAura: fieldState.isDarkAura,
+        isBeadsOfRuin: fieldState.isBeadsOfRuin,
+        isTabletsOfRuin: fieldState.isTabletsOfRuin,
+        isSwordOfRuin: fieldState.isSwordOfRuin,
+        isVesselOfRuin: fieldState.isVesselOfRuin,
+        attackerSide: fieldState.attackerSide,
+        defenderSide: fieldState.defenderSide,
       });
 
-      const result = calculate(gen, attackerPokemon, defenderPokemon, move, calcField);
-      return result;
+      return calculate(gen, attackerPokemon, defenderPokemon, move, calcField);
     } catch (e) {
       console.error("[v0] Calc error:", e);
       return null;
     }
+  };
+
+  // Calculate damage for selected move
+  const damageResult = useMemo(() => {
+    const selectedMove = attacker.moves[attacker.selectedMoveIndex];
+    return calculateMoveResult(selectedMove, attacker, defender, field, crit);
+  }, [attacker, defender, field, crit]);
+
+  // Calculate damage for all moves
+  const allMoveResults = useMemo(() => {
+    return attacker.moves.map((move, index) => {
+      if (!move) return null;
+      const result = calculateMoveResult(move, attacker, defender, field, crit);
+      if (!result) return null;
+
+      const damage = result.damage;
+      let min = 0, max = 0;
+      
+      if (typeof damage === "number") {
+        min = max = damage;
+      } else if (Array.isArray(damage)) {
+        if (Array.isArray(damage[0])) {
+          const flatDamage = (damage as number[][]).flat();
+          min = Math.min(...flatDamage);
+          max = Math.max(...flatDamage);
+        } else {
+          min = Math.min(...(damage as number[]));
+          max = Math.max(...(damage as number[]));
+        }
+      }
+
+      const defHP = result.defender.maxHP();
+      const minPct = ((min / defHP) * 100).toFixed(1);
+      const maxPct = ((max / defHP) * 100).toFixed(1);
+
+      let koChance = "";
+      try {
+        // Try to get KO chance text
+        const koResult = result.kpiChance?.();
+        if (koResult) koChance = koResult;
+      } catch {}
+      
+      if (!koChance) {
+        if (min >= defHP) koChance = "OHKO";
+        else if (max >= defHP) koChance = "~OHKO";
+        else if (min * 2 >= defHP) koChance = "2HKO";
+        else if (max * 2 >= defHP) koChance = "~2HKO";
+        else if (max * 3 >= defHP) koChance = "3HKO";
+        else koChance = "4HKO+";
+      }
+
+      return {
+        move,
+        index,
+        min,
+        max,
+        minPct,
+        maxPct,
+        koChance,
+        desc: result.fullDesc(),
+      };
+    }).filter(Boolean);
   }, [attacker, defender, field, crit]);
 
   // Extract damage range from result
@@ -302,14 +383,15 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
 
     let koChance = "";
     try {
-      const kochance = damageResult.kpiChance();
-      if (kochance) koChance = kochance;
+      const koResult = (damageResult as any).kpiChance?.();
+      if (koResult) koChance = koResult;
     } catch {}
     
     if (!koChance) {
       if (min >= defHP) koChance = "guaranteed OHKO";
       else if (max >= defHP) koChance = "possible OHKO";
-      else if (max * 2 >= defHP) koChance = "2HKO";
+      else if (min * 2 >= defHP) koChance = "guaranteed 2HKO";
+      else if (max * 2 >= defHP) koChance = "possible 2HKO";
       else if (max * 3 >= defHP) koChance = "3HKO";
       else koChance = "4HKO+";
     }
@@ -417,16 +499,20 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     );
   }
 
-  // Move search component
-  function MoveSearch({ index, side, setSide }: { 
+  // Move search component with damage display
+  function MoveSearch({ index, side, setSide, showDamage = false }: { 
     index: number; 
     side: SideState; 
-    setSide: React.Dispatch<React.SetStateAction<SideState>> 
+    setSide: React.Dispatch<React.SetStateAction<SideState>>;
+    showDamage?: boolean;
   }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const move = side.moves[index];
     const isSelected = side.selectedMoveIndex === index;
+    
+    // Get damage result for this move
+    const moveResult = allMoveResults.find(r => r?.index === index);
 
     const results = useMemo(() => {
       if (query.length < 2) return [];
@@ -452,16 +538,15 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         {move ? (
           <div
             onClick={() => setSide(prev => ({ ...prev, selectedMoveIndex: index }))}
-            className={`flex items-center justify-between p-2 border-2 cursor-pointer transition-all ${
+            className={`flex flex-col p-2 border-2 cursor-pointer transition-all ${
               isSelected ? `${activeTheme.borderClass} bg-zinc-800` : "border-zinc-800 bg-zinc-900 hover:bg-zinc-800"
             }`}
           >
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${getTypeBg(move.type)}`} />
-              <span className="text-xs font-bold uppercase truncate">{move.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono opacity-60">{move.basePower || "-"}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${getTypeBg(move.type)}`} />
+                <span className="text-xs font-bold uppercase truncate">{move.name}</span>
+              </div>
               <button 
                 onClick={(e) => { 
                   e.stopPropagation(); 
@@ -471,11 +556,29 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
                     return { ...prev, moves: newMoves.filter(Boolean) }; 
                   }); 
                 }} 
-                className="text-red-500 text-xs"
+                className="text-red-500 text-xs hover:text-red-400"
               >
                 x
               </button>
             </div>
+            {showDamage && moveResult && (
+              <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-700">
+                <span className={`text-[10px] font-mono font-bold ${
+                  moveResult.koChance.includes("OHKO") ? "text-red-400" : 
+                  moveResult.koChance.includes("2HKO") ? "text-orange-400" : 
+                  "text-zinc-400"
+                }`}>
+                  {moveResult.minPct}% - {moveResult.maxPct}%
+                </span>
+                <span className={`text-[9px] font-bold ${
+                  moveResult.koChance.includes("OHKO") ? "text-red-500" : 
+                  moveResult.koChance.includes("2HKO") ? "text-orange-500" : 
+                  "text-zinc-500"
+                }`}>
+                  {moveResult.koChance}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <input
@@ -623,19 +726,28 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     
     const totalEVs = Object.values(side.evs).reduce((a, b) => a + b, 0);
     const remainingEVs = 508 - totalEVs;
+    const [showIVs, setShowIVs] = useState(false);
 
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-black opacity-50 uppercase">EVs ({totalEVs}/508)</span>
-          <span className={`text-[10px] font-bold ${remainingEVs < 0 ? "text-red-500" : "text-green-500"}`}>{remainingEVs} left</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold ${remainingEVs < 0 ? "text-red-500" : "text-green-500"}`}>{remainingEVs} left</span>
+            <button 
+              onClick={() => setShowIVs(!showIVs)} 
+              className="text-[9px] font-bold px-1 py-0.5 bg-zinc-800 hover:bg-zinc-700 rounded"
+            >
+              {showIVs ? "Hide IVs" : "Edit IVs"}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {stats.map(stat => (
             <div key={stat} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <label className="text-[9px] font-black opacity-70 uppercase">{statLabels[stat]}</label>
-                <span className="text-[9px] font-mono opacity-50">{side.ivs[stat]}</span>
+                {!showIVs && <span className="text-[9px] font-mono opacity-50">IV:{side.ivs[stat]}</span>}
               </div>
               <input
                 type="number"
@@ -652,20 +764,45 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
           ))}
         </div>
         
+        {/* IVs */}
+        {showIVs && (
+          <div className="pt-3 border-t border-current/10">
+            <span className="text-[10px] font-black opacity-50 uppercase block mb-2">IVs (0-31)</span>
+            <div className="grid grid-cols-6 gap-2">
+              {stats.map(stat => (
+                <div key={stat} className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black opacity-70 uppercase text-center">{statLabels[stat]}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={31}
+                    value={side.ivs[stat]}
+                    onChange={(e) => setSide(prev => ({ 
+                      ...prev, 
+                      ivs: { ...prev.ivs, [stat]: Math.min(31, Math.max(0, +e.target.value)) } 
+                    }))}
+                    className="w-full bg-zinc-900 border border-current/30 px-1 py-1 text-[10px] font-mono focus:outline-none focus:border-current text-center"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {/* Boosts */}
         <div className="pt-3 border-t border-current/10">
           <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Stat Boosts</span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {(["atk", "def", "spa", "spd", "spe"] as const).map(stat => (
               <div key={stat} className="flex flex-col gap-1">
-                <label className="text-[9px] font-black opacity-70 uppercase">{statLabels[stat]}</label>
+                <label className="text-[9px] font-black opacity-70 uppercase text-center">{statLabels[stat]}</label>
                 <select
                   value={side.boosts[stat]}
                   onChange={(e) => setSide(prev => ({ 
                     ...prev, 
                     boosts: { ...prev.boosts, [stat]: +e.target.value } 
                   }))}
-                  className="w-full bg-black border border-current/30 px-1 py-1 text-[10px] font-bold focus:outline-none"
+                  className="w-full bg-black border border-current/30 px-1 py-1 text-[10px] font-bold focus:outline-none text-center"
                 >
                   {BOOST_STAGES.map(s => (
                     <option key={s} value={s}>{s > 0 ? `+${s}` : s}</option>
@@ -763,10 +900,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         {/* Moves */}
         {isAttacker && (
           <div className="pt-3 border-t border-current/10">
-            <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Moves (click to select)</span>
+            <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Moves (click to select for details)</span>
             <div className="grid grid-cols-2 gap-2">
               {[0, 1, 2, 3].map(i => (
-                <MoveSearch key={i} index={i} side={side} setSide={setSide} />
+                <MoveSearch key={i} index={i} side={side} setSide={setSide} showDamage={!!defender.species} />
               ))}
             </div>
           </div>
@@ -780,10 +917,34 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
 
   // Field options panel
   function FieldOptionsPanel() {
+    const weatherIcon = (w: Weather | "") => {
+      switch(w) {
+        case "Sun": case "Harsh Sunshine": return <Sun className="w-3 h-3 text-orange-400" />;
+        case "Rain": case "Heavy Rain": return <Cloud className="w-3 h-3 text-blue-400" />;
+        case "Sand": return <Wind className="w-3 h-3 text-amber-400" />;
+        case "Snow": return <Snowflake className="w-3 h-3 text-cyan-300" />;
+        default: return null;
+      }
+    };
+
     return (
       <div className="bg-zinc-900/50 border-2 border-current/30 p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-black uppercase">Field Options</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-black uppercase">Field Options</span>
+            {field.weather && (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-800 rounded text-[10px] font-bold">
+                {weatherIcon(field.weather)}
+                <span>{field.weather}</span>
+              </div>
+            )}
+            {field.terrain && (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-800 rounded text-[10px] font-bold">
+                <Zap className="w-3 h-3 text-yellow-400" />
+                <span>{field.terrain}</span>
+              </div>
+            )}
+          </div>
           <button 
             onClick={() => setShowFieldOptions(!showFieldOptions)} 
             className="text-xs font-bold opacity-60 hover:opacity-100"
@@ -830,141 +991,305 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               </div>
             </div>
 
-            {/* Attacker Side */}
-            <div className="border-t border-current/10 pt-3">
-              <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Attacker Side</span>
-              <div className="grid grid-cols-4 gap-2">
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.attackerSide.helpingHand} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      attackerSide: { ...prev.attackerSide, helpingHand: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Helping Hand
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.attackerSide.tailwind} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      attackerSide: { ...prev.attackerSide, tailwind: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Tailwind
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.attackerSide.isBattery} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      attackerSide: { ...prev.attackerSide, isBattery: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Battery
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.attackerSide.isPowerSpot} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      attackerSide: { ...prev.attackerSide, isPowerSpot: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Power Spot
-                </label>
-              </div>
-            </div>
-
-            {/* Defender Side */}
-            <div className="border-t border-current/10 pt-3">
-              <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Defender Side</span>
-              <div className="grid grid-cols-4 gap-2">
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.defenderSide.reflect} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      defenderSide: { ...prev.defenderSide, reflect: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Reflect
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.defenderSide.lightScreen} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      defenderSide: { ...prev.defenderSide, lightScreen: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Light Screen
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.defenderSide.auroraVeil} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      defenderSide: { ...prev.defenderSide, auroraVeil: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Aurora Veil
-                </label>
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.defenderSide.friendGuard} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      defenderSide: { ...prev.defenderSide, friendGuard: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Friend Guard
-                </label>
-              </div>
-              
-              {/* Hazards */}
-              <div className="grid grid-cols-4 gap-2 mt-2">
-                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={field.defenderSide.stealthRock} 
-                    onChange={(e) => setField(prev => ({ 
-                      ...prev, 
-                      defenderSide: { ...prev.defenderSide, stealthRock: e.target.checked } 
-                    }))} 
-                    className="w-3 h-3" 
-                  />
-                  Stealth Rock
-                </label>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] font-bold">Spikes:</span>
+            {/* Two-column layout for Attacker and Defender sides */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Attacker Side */}
+              <div className="border border-red-500/30 bg-red-950/20 p-3 rounded">
+                <div className="flex items-center gap-2 mb-3">
+                  <Swords className="w-4 h-4 text-red-500" />
+                  <span className="text-[11px] font-black text-red-400 uppercase">Attacker Side</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.helpingHand} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, helpingHand: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Helping Hand
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.tailwind} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, tailwind: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Tailwind
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.isBattery} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, isBattery: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Battery
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.isPowerSpot} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, isPowerSpot: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Power Spot
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.isFlowerGift} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, isFlowerGift: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Flower Gift
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.attackerSide.stealthRock} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        attackerSide: { ...prev.attackerSide, stealthRock: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-red-500" 
+                    />
+                    Stealth Rock
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-bold opacity-70">Spikes:</span>
                   <select 
-                    value={field.defenderSide.spikes} 
+                    value={field.attackerSide.spikes} 
                     onChange={(e) => setField(prev => ({ 
                       ...prev, 
-                      defenderSide: { ...prev.defenderSide, spikes: +e.target.value } 
+                      attackerSide: { ...prev.attackerSide, spikes: +e.target.value } 
                     }))} 
-                    className="bg-black border border-current/30 px-1 py-0.5 text-[10px]"
+                    className="bg-black border border-red-500/30 px-1 py-0.5 text-[10px] rounded"
                   >
                     {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
+                </div>
+              </div>
+
+              {/* Defender Side */}
+              <div className="border border-blue-500/30 bg-blue-950/20 p-3 rounded">
+                <div className="flex items-center gap-2 mb-3">
+                  <Shield className="w-4 h-4 text-blue-500" />
+                  <span className="text-[11px] font-black text-blue-400 uppercase">Defender Side</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.reflect} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, reflect: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Reflect
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.lightScreen} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, lightScreen: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Light Screen
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.auroraVeil} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, auroraVeil: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Aurora Veil
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.friendGuard} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, friendGuard: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Friend Guard
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.isSeeded} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, isSeeded: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Leech Seed
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.isSaltCure} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, isSaltCure: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Salt Cure
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.isForesight} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, isForesight: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Foresight
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                    <input 
+                      type="checkbox" 
+                      checked={field.defenderSide.tailwind} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, tailwind: e.target.checked } 
+                      }))} 
+                      className="w-3 h-3 accent-blue-500" 
+                    />
+                    Tailwind
+                  </label>
+                </div>
+                
+                {/* Hazards */}
+                <div className="mt-3 pt-2 border-t border-blue-500/20">
+                  <span className="text-[9px] font-black text-blue-400/70 uppercase block mb-2">Entry Hazards</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.stealthRock} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, stealthRock: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-blue-500" 
+                      />
+                      Stealth Rock
+                    </label>
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.steelsurge} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, steelsurge: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-blue-500" 
+                      />
+                      Steelsurge
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] font-bold opacity-70">Spikes:</span>
+                    <select 
+                      value={field.defenderSide.spikes} 
+                      onChange={(e) => setField(prev => ({ 
+                        ...prev, 
+                        defenderSide: { ...prev.defenderSide, spikes: +e.target.value } 
+                      }))} 
+                      className="bg-black border border-blue-500/30 px-1 py-0.5 text-[10px] rounded"
+                    >
+                      {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* G-Max Hazards */}
+                <div className="mt-3 pt-2 border-t border-blue-500/20">
+                  <span className="text-[9px] font-black text-blue-400/70 uppercase block mb-2">G-Max Hazards</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.vineLash} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, vineLash: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-green-500" 
+                      />
+                      Vine Lash
+                    </label>
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.wildfire} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, wildfire: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-orange-500" 
+                      />
+                      Wildfire
+                    </label>
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.cannonade} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, cannonade: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-blue-500" 
+                      />
+                      Cannonade
+                    </label>
+                    <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer hover:bg-zinc-800/50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={field.defenderSide.volcalith} 
+                        onChange={(e) => setField(prev => ({ 
+                          ...prev, 
+                          defenderSide: { ...prev.defenderSide, volcalith: e.target.checked } 
+                        }))} 
+                        className="w-3 h-3 accent-amber-500" 
+                      />
+                      Volcalith
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1008,6 +1333,40 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
                     className="w-3 h-3" 
                   />
                   Critical Hit
+                </label>
+              </div>
+            </div>
+
+            {/* Aura Effects */}
+            <div className="border-t border-current/10 pt-3">
+              <span className="text-[10px] font-black opacity-50 uppercase block mb-2">Aura Effects</span>
+              <div className="grid grid-cols-3 gap-2">
+                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={field.isFairyAura} 
+                    onChange={(e) => setField(prev => ({ ...prev, isFairyAura: e.target.checked }))} 
+                    className="w-3 h-3 accent-pink-400" 
+                  />
+                  <span className="text-pink-400">Fairy Aura</span>
+                </label>
+                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={field.isDarkAura} 
+                    onChange={(e) => setField(prev => ({ ...prev, isDarkAura: e.target.checked }))} 
+                    className="w-3 h-3 accent-gray-400" 
+                  />
+                  <span className="text-gray-400">Dark Aura</span>
+                </label>
+                <label className="flex items-center gap-1 text-[10px] font-bold cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={field.isAuraBreak} 
+                    onChange={(e) => setField(prev => ({ ...prev, isAuraBreak: e.target.checked }))} 
+                    className="w-3 h-3 accent-red-400" 
+                  />
+                  <span className="text-red-400">Aura Break</span>
                 </label>
               </div>
             </div>
