@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { UserPlus, Mail, Lock, User, AlertTriangle, CheckCircle } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [nombre, setNombre] = useState("");
   const [password, setPassword] = useState("");
@@ -39,17 +38,25 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="flex flex-1 items-center justify-center px-4 py-16">
-        <div className="glass-card w-full max-w-sm p-8 text-center animate-fade-in">
-          <div className="text-4xl mb-4">✉️</div>
-          <h2 className="text-xl font-bold text-white mb-2">Revisa tu correo</h2>
-          <p className="text-[var(--text-muted)] text-sm">
-            Te hemos enviado un link de confirmación a <strong className="text-white">{email}</strong>.
-            Haz clic en él para activar tu cuenta.
+      <div className="flex flex-1 items-center justify-center px-4 py-16 bg-[var(--background)]">
+        <div className="w-full max-w-md border-4 border-[var(--accent)] bg-[var(--surface-2)] p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 border-4 border-[var(--accent)] flex items-center justify-center">
+            <CheckCircle className="w-8 h-8 text-[var(--accent)]" strokeWidth={3} />
+          </div>
+          <h2 className="text-3xl font-black uppercase tracking-tighter text-[var(--foreground)] mb-4">
+            Revisa tu correo
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm font-bold uppercase leading-relaxed mb-6">
+            Te hemos enviado un link de confirmacion a{" "}
+            <span className="text-[var(--accent)]">{email}</span>.
+            Haz clic en el para activar tu cuenta.
           </p>
           <Link
             href="/auth/login"
-            className="inline-block mt-6 text-[var(--accent-primary)] text-sm hover:underline"
+            className="inline-block border-4 border-[var(--border)] px-6 py-3 
+                       text-xs font-black uppercase tracking-widest text-[var(--foreground)]
+                       hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                       active:scale-95 transition-none"
           >
             Ir al Login
           </Link>
@@ -59,77 +66,96 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="glass-card w-full max-w-sm p-8">
-        <h1 className="text-2xl font-bold text-center mb-1">
-          <span className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]
-                          bg-clip-text text-transparent">
+    <div className="flex flex-1 items-center justify-center px-4 py-16 bg-[var(--background)]">
+      <div className="w-full max-w-md border-4 border-[var(--border)] bg-[var(--surface-2)] p-8">
+        {/* Header */}
+        <div className="text-center mb-8 border-b-4 border-[var(--border)] pb-6">
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-[var(--accent)] mb-2">
             Crear Cuenta
-          </span>
-        </h1>
-        <p className="text-[var(--text-muted)] text-sm text-center mb-6">
-          Únete y empieza a construir equipos con IA
-        </p>
+          </h1>
+          <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest">
+            Unete y construye equipos con IA
+          </p>
+        </div>
 
+        {/* Error Alert */}
         {error && (
-          <div className="bg-[var(--danger)]/10 border border-[var(--danger)]/30 rounded-lg p-3 mb-4">
-            <p className="text-[var(--danger)] text-xs">{error}</p>
+          <div className="bg-[var(--danger)]/20 border-4 border-[var(--danger)] p-4 mb-6 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-[var(--danger)] shrink-0 mt-0.5" strokeWidth={3} />
+            <p className="text-[var(--danger)] text-xs font-bold uppercase">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="flex flex-col gap-4">
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Nombre de Entrenador</label>
+        {/* Form */}
+        <form onSubmit={handleRegister} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+              <User className="w-3 h-3" strokeWidth={3} /> Nombre de Entrenador
+            </label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               required
-              className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-4 py-2.5
-                         text-sm text-white outline-none focus:border-[var(--accent-primary)] transition-colors"
+              className="w-full bg-[var(--background)] border-4 border-[var(--border)] px-4 py-3
+                         text-sm text-[var(--foreground)] font-bold
+                         focus:outline-none focus:border-[var(--accent)] transition-none"
               placeholder="Ash"
             />
           </div>
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+              <Mail className="w-3 h-3" strokeWidth={3} /> Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-4 py-2.5
-                         text-sm text-white outline-none focus:border-[var(--accent-primary)] transition-colors"
+              className="w-full bg-[var(--background)] border-4 border-[var(--border)] px-4 py-3
+                         text-sm text-[var(--foreground)] font-bold
+                         focus:outline-none focus:border-[var(--accent)] transition-none"
               placeholder="tu@email.com"
             />
           </div>
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Contraseña</label>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+              <Lock className="w-3 h-3" strokeWidth={3} /> Contrasena
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-4 py-2.5
-                         text-sm text-white outline-none focus:border-[var(--accent-primary)] transition-colors"
-              placeholder="Mínimo 6 caracteres"
+              className="w-full bg-[var(--background)] border-4 border-[var(--border)] px-4 py-3
+                         text-sm text-[var(--foreground)] font-bold
+                         focus:outline-none focus:border-[var(--accent)] transition-none"
+              placeholder="Minimo 6 caracteres"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)]
-                       disabled:opacity-40 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors"
+            className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] border-4 border-[var(--accent)]
+                       font-black uppercase tracking-tighter text-lg py-4
+                       hover:bg-[var(--foreground)] hover:text-[var(--background)] hover:border-[var(--foreground)]
+                       disabled:opacity-40 disabled:pointer-events-none
+                       active:scale-95 transition-none flex items-center justify-center gap-2"
           >
+            <UserPlus className="w-5 h-5" strokeWidth={3} />
             {loading ? "Creando..." : "Crear Cuenta"}
           </button>
         </form>
 
-        <p className="text-center text-xs text-[var(--text-muted)] mt-5">
-          ¿Ya tienes cuenta?{" "}
-          <Link href="/auth/login" className="text-[var(--accent-primary)] hover:underline">
-            Inicia sesión
+        {/* Login Link */}
+        <p className="text-center text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mt-8">
+          Ya tienes cuenta?{" "}
+          <Link href="/auth/login" className="text-[var(--accent)] hover:underline">
+            Inicia sesion
           </Link>
         </p>
       </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LogIn, Mail, Lock, AlertTriangle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,84 +26,101 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/builder");
+    router.push("/es/builder");
   }
 
   async function handleGoogleLogin() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/builder` },
+      options: { redirectTo: `${window.location.origin}/es/builder` },
     });
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="glass-card w-full max-w-sm p-8">
-        <h1 className="text-2xl font-bold text-center mb-1">
-          <span className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]
-                          bg-clip-text text-transparent">
-            Iniciar Sesión
-          </span>
-        </h1>
-        <p className="text-[var(--text-muted)] text-sm text-center mb-6">
-          Accede a tu cuenta para construir equipos
-        </p>
+    <div className="flex flex-1 items-center justify-center px-4 py-16 bg-[var(--background)]">
+      <div className="w-full max-w-md border-4 border-[var(--border)] bg-[var(--surface-2)] p-8">
+        {/* Header */}
+        <div className="text-center mb-8 border-b-4 border-[var(--border)] pb-6">
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-[var(--accent)] mb-2">
+            Iniciar Sesion
+          </h1>
+          <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest">
+            Accede para construir equipos con IA
+          </p>
+        </div>
 
+        {/* Error Alert */}
         {error && (
-          <div className="bg-[var(--danger)]/10 border border-[var(--danger)]/30 rounded-lg p-3 mb-4">
-            <p className="text-[var(--danger)] text-xs">{error}</p>
+          <div className="bg-[var(--danger)]/20 border-4 border-[var(--danger)] p-4 mb-6 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-[var(--danger)] shrink-0 mt-0.5" strokeWidth={3} />
+            <p className="text-[var(--danger)] text-xs font-bold uppercase">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
+        {/* Form */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+              <Mail className="w-3 h-3" strokeWidth={3} /> Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-4 py-2.5
-                         text-sm text-white outline-none focus:border-[var(--accent-primary)] transition-colors"
+              className="w-full bg-[var(--background)] border-4 border-[var(--border)] px-4 py-3
+                         text-sm text-[var(--foreground)] font-bold
+                         focus:outline-none focus:border-[var(--accent)] transition-none"
               placeholder="tu@email.com"
             />
           </div>
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Contraseña</label>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+              <Lock className="w-3 h-3" strokeWidth={3} /> Contrasena
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-4 py-2.5
-                         text-sm text-white outline-none focus:border-[var(--accent-primary)] transition-colors"
-              placeholder="••••••••"
+              className="w-full bg-[var(--background)] border-4 border-[var(--border)] px-4 py-3
+                         text-sm text-[var(--foreground)] font-bold
+                         focus:outline-none focus:border-[var(--accent)] transition-none"
+              placeholder="********"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)]
-                       disabled:opacity-40 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors"
+            className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] border-4 border-[var(--accent)]
+                       font-black uppercase tracking-tighter text-lg py-4
+                       hover:bg-[var(--foreground)] hover:text-[var(--background)] hover:border-[var(--foreground)]
+                       disabled:opacity-40 disabled:pointer-events-none
+                       active:scale-95 transition-none flex items-center justify-center gap-2"
           >
+            <LogIn className="w-5 h-5" strokeWidth={3} />
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-[var(--border)]" />
-          <span className="text-[var(--text-muted)] text-xs">o</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-8">
+          <div className="flex-1 h-1 bg-[var(--border)]" />
+          <span className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest">o</span>
+          <div className="flex-1 h-1 bg-[var(--border)]" />
         </div>
 
+        {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-2 border border-[var(--border)]
-                     hover:border-[var(--border-active)] text-[var(--text-secondary)] text-sm 
-                     py-2.5 rounded-xl transition-colors hover:bg-white/5"
+          className="w-full flex items-center justify-center gap-3 border-4 border-[var(--border)]
+                     text-[var(--foreground)] text-xs font-black uppercase tracking-widest
+                     py-4 hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                     active:scale-95 transition-none"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24">
+          <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -111,10 +129,11 @@ export default function LoginPage() {
           Continuar con Google
         </button>
 
-        <p className="text-center text-xs text-[var(--text-muted)] mt-5">
-          ¿No tienes cuenta?{" "}
-          <Link href="/auth/register" className="text-[var(--accent-primary)] hover:underline">
-            Regístrate
+        {/* Register Link */}
+        <p className="text-center text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mt-8">
+          No tienes cuenta?{" "}
+          <Link href="/auth/register" className="text-[var(--accent)] hover:underline">
+            Registrate
           </Link>
         </p>
       </div>
