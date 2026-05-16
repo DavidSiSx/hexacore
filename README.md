@@ -32,12 +32,12 @@
 
 ### What is Hexacore?
 
-Hexacore is a competitive Pokémon team-building assistant that goes far beyond any existing tool. Instead of relying on static databases or unchecked AI hallucinations, it combines:
+Hexacore is a competitive Pokémon team-building assistant that goes far beyond any existing tool. It combines:
 
-- **A living RAG knowledge base** seeded with structured Smogon strategies, PokeAPI lore, mathematical mechanics (priority, status conditions), and usage statistics for 1,400+ Pokémon forms, Items, and Abilities.
-- **Gemini 2.5 with Structured Outputs** (Zod schemas) to guarantee legally-valid, format-compliant team suggestions with no hallucinated moves.
-- **A hybrid relational/document model** (PostgreSQL + JSONB + pgvector) that handles official Pokémon, regional forms, Mega Evolutions, Gigantamax forms and future Fakemons.
-- **Real-time SSE telemetry** for streaming AI reasoning to the frontend as it thinks.
+- **A living RAG knowledge base** seeded with structured Smogon strategies, PokeAPI lore, and real-time usage statistics.
+- **Metagame Dashboard**: Live visualization of Smogon "Chaos" data, showing the most used Pokémon, moves, and abilities in the current format.
+- **Showdown-Grade Damage Calculator**: A professional-grade calculator with Smogon set injection, Tera Type support, and field condition simulations.
+- **Gemini 2.5 with Structured Outputs**: To guarantee legally-valid, format-compliant team suggestions.
 
 ### Architecture & RAG Pipeline
 
@@ -50,52 +50,32 @@ Hexacore is a competitive Pokémon team-building assistant that goes far beyond 
 │   Server Actions) │   Prisma 7 ORM       │  Structured JSON  │
 ├───────────────────┴──────────────────────┴───────────────────┤
 │                     Knowledge Layer (RAG)                    │
-│  @pkmn/dex + Smogon Sets + PokeAPI + Math/Synergy Mechanics  │
+│  @pkmn/dex + Smogon Sets + PokeAPI + Usage Stats (Chaos)     │
 │  -> Vectorized with all-MiniLM-L6-v2 (384d) -> pgvector      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-The seed pipeline (`prisma/seed.ts`) performs a **Multi-layer enrichment** for every Pokémon, Item, Ability, and Move, combined with static dictionaries containing game mechanics (Priority Brackets, Weather, Terastallization) and high-level synergies (e.g. Costar + Commander).
-
-### Hexacore Premium (v2.0 Update)
-We have completely overhauled Hexacore to its Premium version, focusing on three core pillars:
-1. **Kinetic Typography & Brutalism:** A highly aggressive, high-contrast visual identity. Zero border-radius, harsh binary animations (hard-blinks), solid colors, and an SVG `feTurbulence` noise texture overlay. Atomic primitives like `<KineticInput>` and `<KineticMarquee>` drive the UI.
-2. **Native i18n & SEO:** Migrated from a client-side `LangProvider` to a Next.js App Router directory-based `/[lang]/` architecture with static dictionaries. This guarantees zero hydration flashes and perfect localized SEO indexing.
-3. **Bulletproof Security:** Eradicated SQL injection vulnerabilities in `pgvector` raw queries by implementing strict Zod schema allowlisting for database filters.
-
 ### Roadmap
 
 #### ✅ Phase 1 & 1.5 — Database Foundation & Knowledge Vault
-- [x] Hybrid schema design (`Criatura`, `Objeto`, `Habilidad`, `Movimiento`, `Formato`)
-- [x] Prisma 7 migration with Supabase pgvector
-- [x] Full seed pipeline: 1,468 Pokémon × 4 data layers (Showdown + Smogon + PokeAPI + Math/Gimmicks)
-- [x] Local embedding model (all-MiniLM-L6-v2, 384d)
+- [x] Hybrid schema design (`Criatura`, `Objeto`, `Habilidad`, `Movimiento`)
+- [x] Full seed pipeline: 1,468 Pokémon forms enriched with Showdown + Smogon + PokeAPI.
+- [x] Local embedding model (all-MiniLM-L6-v2)
 
-#### ✅ Phase 2 — Hexacore Premium Refactor
-- [x] Security: Zod Allowlisting for pgvector raw queries.
+#### ✅ Phase 2 — Hexacore Premium & Metagame
 - [x] Architecture: Native App Router i18n (`/[lang]`) and Middleware.
-- [x] Aesthetics: Kinetic Typography & Brutalism design system (`globals.css`, `tailwind v4`).
-- [x] Primitives: Kinetic Components & Reveal Cards.
+- [x] Aesthetics: Kinetic Typography & Brutalism design system.
+- [x] **Metagame Dashboard**: Integration with Smogon Chaos data.
+- [x] **Damage Calculator**: Professional engine with Smogon sets & Tera support.
 
-#### 🔄 Phase 3 — Controlled Generation (Structured Outputs)
-- [ ] Zod schemas for competitive builds (moves, EVs, item, ability, nature)
-- [ ] Gemini 2.5 client with `response_schema` enforcement
-- [ ] RAG retrieval function (cosine similarity via pgvector)
+#### 🔄 Phase 3 — User Experience & Navigation
+- [ ] Refactor Navigation Topbar for better accessibility and user flow.
+- [ ] Implement User Profiles and Team History.
 
-#### ⬜ Phase 4 — Telemetry & RLHF Feedback
-- [ ] Server-Sent Events endpoint for streaming AI reasoning
-- [ ] User correction traces (`TrazaCorreccion`) & fine-tuning loop.
-
-### Getting Started
-```bash
-git clone https://github.com/DavidSiSx/hexacore.git
-cd hexacore
-npm install
-cp .env.example .env # Set DATABASE_URL and DIRECT_URL
-npx prisma db push
-npx tsx prisma/seed.ts # Seeds the RAG database & native tags
-npm run dev
-```
+#### ⬜ Phase 4 — The Builder (The Masterpiece)
+- [ ] AI-Driven Team Builder with RAG synergy detection.
+- [ ] Real-time SSE telemetry for streaming AI reasoning.
+- [ ] Legality checker for VGC and Smogon formats.
 
 ---
 
@@ -103,69 +83,32 @@ npm run dev
 
 ### ¿Qué es Hexacore?
 
-Hexacore es un asistente de construcción de equipos competitivos de Pokémon que va mucho más allá de cualquier herramienta existente. En lugar de depender de bases de datos estáticas o alucinaciones de la IA, combina:
+Hexacore es un asistente de construcción de equipos competitivos de Pokémon que combina:
 
-- **Una base de conocimiento RAG viva** poblada con estrategias estructuradas de Smogon, historia de PokeAPI, mecánicas matemáticas (prioridad, estados) y estadísticas para más de 1,400 formas de Pokémon, Objetos y Habilidades.
-- **Gemini 2.5 con Structured Outputs** (esquemas Zod) para garantizar sugerencias de equipos legales y válidas sin movimientos inventados.
-- **Un modelo híbrido relacional/documental** (PostgreSQL + JSONB + pgvector) que maneja Pokémon oficiales, formas regionales, Megaevoluciones, Gigamax y futuros Fakemons.
-- **Telemetría en tiempo real (SSE)** para transmitir el razonamiento de la IA al frontend mientras "piensa".
-
-### Hexacore Premium (Actualización v2.0)
-Hemos renovado completamente Hexacore a su versión Premium, centrándonos en tres pilares:
-1. **Kinetic Typography y Brutalismo:** Una identidad visual agresiva y de alto contraste. Cero bordes redondeados, animaciones binarias severas, colores sólidos y una textura de ruido SVG `feTurbulence`.
-2. **i18n Nativo y SEO:** Migración de un `LangProvider` del cliente a una arquitectura nativa de Next.js `/[lang]/` con diccionarios estáticos. Esto garantiza cero destellos de hidratación y un SEO localizado perfecto.
-3. **Seguridad Blindada:** Erradicación de vulnerabilidades de inyección SQL en consultas crudas de `pgvector` implementando una estricta validación Zod (Allowlisting).
-
-### Arquitectura y Pipeline RAG
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        Stack Hexacore                        │
-├───────────────────┬──────────────────────┬───────────────────┤
-│    Next.js 16     │   Supabase Postgres  │   Google Gemini   │
-│  (App Router +    │   JSONB + pgvector   │      2.5 Pro      │
-│   Server Actions) │   Prisma 7 ORM       │  Structured JSON  │
-├───────────────────┴──────────────────────┴───────────────────┤
-│                  Capa de Conocimiento (RAG)                  │
-│  @pkmn/dex + Smogon Sets + PokeAPI + Mecánicas/Sinergias     │
-│  -> Vectorizado con all-MiniLM-L6-v2 (384d) -> pgvector      │
-└──────────────────────────────────────────────────────────────┘
-```
-
-El script de inicialización (`prisma/seed.ts`) realiza un **enriquecimiento multicapa** para cada Pokémon, Objeto, Habilidad y Movimiento, combinado con diccionarios estáticos que contienen las matemáticas del juego y sinergias.
+- **Base de Conocimiento RAG**: Estrategias de Smogon, lore de PokeAPI y estadísticas de uso en tiempo real.
+- **Dashboard de Metajuego**: Visualización en vivo de los datos "Chaos" de Smogon, mostrando lo más usado en el formato actual.
+- **Calculadora de Daño Showdown-Style**: Un motor profesional con inyección de sets de Smogon, soporte para Teracristalización y condiciones de campo.
+- **IA Estructurada**: Gemini 2.5 garantiza que cada sugerencia sea legal y válida para el formato elegido.
 
 ### Roadmap
 
-#### ✅ Fase 1 y 1.5 — Fundación de Base de Datos y Bóveda RAG
-- [x] Diseño de esquema híbrido (`Criatura`, `Objeto`, `Habilidad`, `Movimiento`, `Formato`)
-- [x] Migración de Prisma 7 con Supabase pgvector
-- [x] Pipeline de sembrado: 1,468 Pokémon × 4 capas de datos
+#### ✅ Fase 1 y 1.5 — Cimientos y Bóveda RAG
+- [x] Diseño de esquema híbrido y migración a Prisma 7.
+- [x] Pipeline de sembrado: 1,468 Pokémon enriquecidos con 4 capas de datos.
 
-#### ✅ Fase 2 — Refactor Hexacore Premium
-- [x] Seguridad: Allowlisting con Zod para consultas crudas.
-- [x] Arquitectura: i18n nativo (`/[lang]`) y Middleware.
-- [x] Estética: Sistema Kinetic Typography y Brutalismo.
-- [x] Primitivas: Componentes Kinetic y Tarjetas Reveal.
+#### ✅ Fase 2 — Hexacore Premium y Metajuego
+- [x] Arquitectura: i18n nativo y sistema de diseño Brutalista.
+- [x] **Metagame Dashboard**: Integración de datos empíricos de uso.
+- [x] **Calculadora de Daño**: Motor pro con soporte para Tera y sets automáticos.
 
-#### 🔄 Fase 3 — Generación Controlada (Structured Outputs)
-- [ ] Esquemas Zod para builds competitivas
-- [ ] Cliente Gemini 2.5 con validación `response_schema`
-- [ ] Función de recuperación RAG vía pgvector
+#### 🔄 Fase 3 — Experiencia de Usuario y Navegación
+- [ ] Refactorización del Topbar de navegación.
+- [ ] Perfiles de usuario y guardado de equipos.
 
-#### ⬜ Fase 4 — Telemetría y Feedback RLHF
-- [ ] Endpoint de Server-Sent Events
-- [ ] Trazas de corrección del usuario (`TrazaCorreccion`)
-
-### Cómo Empezar
-```bash
-git clone https://github.com/DavidSiSx/hexacore.git
-cd hexacore
-npm install
-cp .env.example .env # Configura DATABASE_URL y DIRECT_URL
-npx prisma db push
-npx tsx prisma/seed.ts # Llena la base de datos RAG
-npm run dev
-```
+#### ⬜ Fase 4 — El Constructor (La Obra Maestra)
+- [ ] Team Builder impulsado por IA con detección de sinergias RAG.
+- [ ] Telemetría SSE para el razonamiento de la IA en tiempo real.
+- [ ] Verificador de legalidad para VGC y formatos Smogon.
 
 ---
 

@@ -9,7 +9,8 @@
     "type_chart": "TYPE CHART",
     "fakemons": "FAKEMONS",
     "calculator": "CALCULATOR",
-    "builder": "TEAM BUILDER"
+    "builder": "TEAM BUILDER",
+    "metagame": "METAGAME"
   },
   "search": {
     "placeholder": "SEARCH POKÉMON..."

@@ -10,6 +10,7 @@ export interface SmogonUsageStat {
   items: Record<string, number>;
   moves: Record<string, number>;
   teammates: Record<string, number>;
+  spreads: Record<string, number>; // "Nature:HP/Atk/Def/SpA/SpD/Spe" -> usage
   spriteUrl: string;
 }
 
@@ -29,8 +30,6 @@ async function fetchSmogonChaos(format: string): Promise<{ data: any; info: any 
   const monthsToTry = [0, 1].map(offset => {
     const d = new Date();
     d.setMonth(d.getMonth() - offset);
-    // Nota: Las stats de Mayo (05) se publican en Junio. 
-    // Si estamos en Mayo 15, necesitamos las de Abril (04).
     const adjusted = new Date(d.getFullYear(), d.getMonth() - 1);
     return {
       year: adjusted.getFullYear(),
@@ -38,7 +37,6 @@ async function fetchSmogonChaos(format: string): Promise<{ data: any; info: any 
     };
   });
 
-  // Cutoffs comunes en Smogon
   const cutoffs = format.includes("ou") ? [1695, 1825, 1500, 0] : [1630, 1760, 1500, 0];
 
   for (const { year, month } of monthsToTry) {
@@ -97,6 +95,7 @@ export async function getMetagameStats(format: string = "gen9ou"): Promise<Metag
             items: normalize(stats.Items),
             moves: normalize(stats.Moves),
             teammates: normalize(stats.Teammates),
+            spreads: normalize(stats.Spreads),
             spriteUrl: attrs.spriteUrl || `https://play.pokemonshowdown.com/sprites/gen5/${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.png`
           };
         })
@@ -121,4 +120,43 @@ export async function getMetagameStats(format: string = "gen9ou"): Promise<Metag
       pokemonList: []
     };
   }
+}
+
+export interface StandardSet {
+  ability: string;
+  item: string;
+  nature: string;
+  evs: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number };
+  moves: string[];
+}
+
+/**
+ * Obtiene el set más común para un Pokémon específico.
+ */
+export async function getStandardSet(pokemonName: string, format: string = "gen9ou"): Promise<StandardSet | null> {
+  const stats = await getMetagameStats(format);
+  const p = stats.pokemonList.find(x => x.pokemon === pokemonName);
+  if (!p) return null;
+
+  const getTop = (record: Record<string, number>) => 
+    Object.entries(record).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+  const topSpreadStr = getTop(p.spreads);
+  let nature = "Hardy";
+  let evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+
+  if (topSpreadStr) {
+    const [n, e] = topSpreadStr.split(":");
+    nature = n;
+    const parts = e.split("/").map(Number);
+    evs = { hp: parts[0], atk: parts[1], def: parts[2], spa: parts[3], spd: parts[4], spe: parts[5] };
+  }
+
+  return {
+    ability: getTop(p.abilities) || "None",
+    item: getTop(p.items) || "None",
+    nature,
+    evs,
+    moves: Object.entries(p.moves).sort((a, b) => b[1] - a[1]).slice(0, 4).map(x => x[0])
+  };
 }

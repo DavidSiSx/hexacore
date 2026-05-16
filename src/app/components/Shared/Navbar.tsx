@@ -35,6 +35,8 @@ export default function Navbar({ lang, dict }: { lang: string; dict: any }) {
   const NAV_LINKS = [
     { href: `/${lang}`, label: dict.nav?.overview || "INICIO" },
     { href: `/${lang}/pokedex`, label: dict.nav?.encyclopedia || "ENCICLOPEDIA" },
+    { href: `/${lang}/pokedex/stats`, label: dict.nav?.metagame || "METAGAME" },
+    { href: `/${lang}/pokedex/calc`, label: dict.nav?.calculator || "CALCULADORA" },
     { href: `/${lang}/builder`, label: dict.nav?.builder || "CONSTRUCTOR", auth: true },
   ];
 
@@ -70,17 +72,17 @@ export default function Navbar({ lang, dict }: { lang: string; dict: any }) {
         </div>
 
         {/* Right side: Global Theme Dropdown / Pills + Lang Toggle + Auth */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Global Theme Selector Pills (Desktop) */}
-          <div className="hidden lg:flex items-center gap-1 bg-black/40 p-1 border border-zinc-800">
-            <Palette className="w-3.5 h-3.5 text-zinc-500 ml-1" />
+          <div className="hidden lg:flex items-center gap-1.5 bg-black/60 px-3 py-1.5 border-2 border-zinc-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <Palette className={`w-4 h-4 ${activeTheme.accentClass} mr-1`} strokeWidth={3} />
             {THEMES_LIST.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTheme(t.id)}
                 title={t.name}
-                className={`w-3.5 h-3.5 border transition-all ${
-                  currentTheme === t.id ? `${activeTheme.borderClass} scale-125` : "border-transparent opacity-40 hover:opacity-100"
+                className={`w-4 h-4 border-2 transition-all hover:scale-110 active:scale-90 ${
+                  currentTheme === t.id ? `${activeTheme.borderClass} scale-125 z-10` : "border-transparent opacity-30 hover:opacity-100"
                 }`}
                 style={{
                   backgroundColor: t.id === "neon" ? "#DFE104" : t.id === "gba" ? "#00FF66" : t.id === "crimson" ? "#FF3366" : t.id === "quartz" ? "#FFFFFF" : "#00FFFF"
@@ -94,22 +96,25 @@ export default function Navbar({ lang, dict }: { lang: string; dict: any }) {
           </div>
 
           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest text-zinc-500 hidden sm:block truncate max-w-[100px]">
-                {user.email}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border-2 ${activeTheme.borderClass}`}>
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white truncate max-w-[120px]">
+                  {user.email?.split("@")[0]}
+                </span>
+              </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white px-3 py-1.5 border border-zinc-700 hover:border-red-500 hover:bg-red-500 transition-none active:scale-95"
+                className={`group flex items-center justify-center w-9 h-9 border-2 ${activeTheme.borderClass} bg-black hover:bg-red-500 hover:border-red-500 hover:text-white transition-none active:scale-95`}
+                title={isEs ? "SALIR" : "LOGOUT"}
               >
-                <LogOut className="w-3.5 h-3.5" strokeWidth={3} />
-                {isEs ? "SALIR" : "LOGOUT"}
+                <LogOut className="w-4 h-4 group-hover:scale-110" strokeWidth={3} />
               </button>
             </div>
           ) : (
             <Link
               href={`/${lang}/auth/login`}
-              className={`flex items-center gap-1.5 border ${mounted ? activeTheme.borderClass : "border-zinc-800"} bg-black/60 hover:bg-[var(--accent)] hover:text-[var(--background)] ${mounted ? activeTheme.accentClass : "text-white"} text-[10px] font-black uppercase tracking-widest px-4 py-1.5 transition-none active:scale-95`}
+              className={`flex items-center gap-1.5 border-2 ${mounted ? activeTheme.borderClass : "border-zinc-800"} bg-black/60 hover:bg-[var(--accent)] hover:text-[var(--background)] ${mounted ? activeTheme.accentClass : "text-white"} text-[10px] font-black uppercase tracking-widest px-4 py-2 transition-none active:scale-95 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}
             >
               <LogIn className="w-3.5 h-3.5" strokeWidth={3} />
               {isEs ? "ENTRAR" : "LOGIN"}

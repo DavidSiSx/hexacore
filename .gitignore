@@ -29,8 +29,9 @@
 /.gga
 /inciensos/
 /skills-lock.json
-AUTOSKILLS.MD
-CLAUDE.md
+*.md
+!README.md
+!AGENTS.md
 
 # 🧪 Testing & Code Coverage
 /coverage
