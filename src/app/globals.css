@@ -14,8 +14,20 @@
   --background: #09090B;
   --foreground: #FAFAFA;
   --accent: #DFE104;
+  --accent-foreground: #000000;
   --muted: #27272A;
   --border: #3F3F46;
+  
+  /* Aliases para retrocompatibilidad con componentes legacy */
+  --accent-primary: var(--accent);
+  --accent-secondary: var(--accent);
+  --surface-2: var(--muted);
+  --surface-3: var(--muted);
+  --text-secondary: var(--foreground);
+  --text-muted: #71717A;
+  --danger: #EF4444;
+  --border-active: var(--accent);
+  --bg: var(--background);
 }
 
 /* Temas Globales en Cascada (Armonía Absoluta) */
@@ -26,6 +38,14 @@
   --accent-foreground: #000000;
   --border: #DFE104;
   --muted: #18181B;
+  --text-muted: #71717A;
+  --accent-primary: var(--accent);
+  --accent-secondary: var(--accent);
+  --surface-2: var(--muted);
+  --surface-3: #27272A;
+  --text-secondary: var(--foreground);
+  --danger: #EF4444;
+  --bg: var(--background);
 }
 
 .theme-gba {
@@ -35,6 +55,14 @@
   --accent-foreground: #000000;
   --border: #00FF66;
   --muted: #064E3B;
+  --text-muted: #6EE7B7;
+  --accent-primary: var(--accent);
+  --accent-secondary: var(--accent);
+  --surface-2: var(--muted);
+  --surface-3: #065F46;
+  --text-secondary: var(--foreground);
+  --danger: #F87171;
+  --bg: var(--background);
 }
 
 .theme-crimson {
@@ -44,6 +72,14 @@
   --accent-foreground: #FFFFFF;
   --border: #FF3366;
   --muted: #881337;
+  --text-muted: #FDA4AF;
+  --accent-primary: var(--accent);
+  --accent-secondary: var(--accent);
+  --surface-2: var(--muted);
+  --surface-3: #9F1239;
+  --text-secondary: var(--foreground);
+  --danger: #FCA5A5;
+  --bg: var(--background);
 }
 
 .theme-quartz {
@@ -53,6 +89,14 @@
   --accent-foreground: #FFFFFF;
   --border: #000000;
   --muted: #E4E4E7;
+  --text-muted: #71717A;
+  --accent-primary: var(--accent);
+  --accent-secondary: #27272A;
+  --surface-2: #FFFFFF;
+  --surface-3: #E4E4E7;
+  --text-secondary: #27272A;
+  --danger: #DC2626;
+  --bg: var(--background);
 }
 
 .theme-cyberpunk {
@@ -62,6 +106,14 @@
   --accent-foreground: #000000;
   --border: #00FFFF;
   --muted: #1E1B4B;
+  --text-muted: #A5B4FC;
+  --accent-primary: var(--accent);
+  --accent-secondary: #06B6D4;
+  --surface-2: var(--muted);
+  --surface-3: #312E81;
+  --text-secondary: var(--foreground);
+  --danger: #F87171;
+  --bg: var(--background);
 }
 
 /* Base resets & brutalist rules */
@@ -79,8 +131,24 @@ body {
 }
 
 /* Revert text-transform for normal text blocks if needed */
-p, span.normal-case, .lowercase, .capitalize, input {
+p, span.normal-case, .lowercase, .capitalize, input, textarea {
   text-transform: none;
+}
+
+/* Glass Card - Brutalist Override (retrocompatibilidad) */
+.glass-card {
+  background: var(--surface-2);
+  border: 4px solid var(--border);
+  padding: 1.5rem;
+}
+
+/* Brutalist utility classes */
+.brutalist-border {
+  border: 4px solid var(--border);
+}
+
+.brutalist-shadow {
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1) !important;
 }
 
 /* SVG Noise Texture Overlay */

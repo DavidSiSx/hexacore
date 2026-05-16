@@ -3,6 +3,7 @@
 import { PokemonBuild } from "@/lib/schemas/team";
 import SpriteImg from "@/app/components/Shared/SpriteImg";
 import TypeBadge from "@/app/components/Shared/TypeBadge";
+import { useTheme } from "@/app/components/Shared/ThemeProvider";
 
 function formatEvs(evs: Record<string, number | undefined>): string {
   return Object.entries(evs)
@@ -18,65 +19,73 @@ export default function TeamPokemonCard({
   pokemon: PokemonBuild;
   index: number;
 }) {
+  const { activeTheme } = useTheme();
+
   return (
-    <div className="glass-card p-5 flex flex-col gap-3 group">
+    <div className={`border-4 ${activeTheme.borderClass} ${activeTheme.cardBgClass} p-6 flex flex-col gap-4 group
+                     hover:translate-x-1 hover:-translate-y-1 transition-transform`}>
       {/* Header: Sprite + Name + Role */}
       <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 flex-shrink-0">
+        <div className="relative w-16 h-16 shrink-0">
           <SpriteImg
             species={pokemon.species}
             width={64}
             height={64}
-            className="drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+            className="drop-shadow-md group-hover:scale-110 transition-transform"
           />
-          <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[var(--accent-primary)]
-                          text-[10px] font-bold flex items-center justify-center text-white">
+          <span className={`absolute -top-2 -left-2 w-6 h-6 bg-[var(--accent)] text-[var(--accent-foreground)]
+                          text-[10px] font-black flex items-center justify-center border-2 border-[var(--background)]`}>
             {index + 1}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-white truncate">{pokemon.species}</h3>
-          <p className="text-xs text-[var(--text-muted)] truncate">{pokemon.role}</p>
+          <h3 className={`text-lg font-black uppercase tracking-tighter ${activeTheme.textMainClass} truncate`}>
+            {pokemon.species}
+          </h3>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} truncate`}>
+            {pokemon.role}
+          </p>
         </div>
       </div>
 
       {/* Tera Type Badge */}
       <div className="flex items-center gap-2">
         <TypeBadge type={pokemon.teraType} />
-        <span className="text-[10px] text-[var(--text-muted)]">Tera</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest ${activeTheme.textMutedClass}`}>Tera</span>
       </div>
 
       {/* Details Grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+      <div className={`grid grid-cols-2 gap-4 pt-4 border-t-2 ${activeTheme.borderClass}`}>
         <div>
-          <span className="text-[var(--text-muted)] text-xs">Item</span>
-          <p className="text-[var(--text-secondary)] font-medium truncate">{pokemon.item}</p>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-1`}>Item</span>
+          <p className={`${activeTheme.textMainClass} text-xs font-bold uppercase truncate`}>{pokemon.item}</p>
         </div>
         <div>
-          <span className="text-[var(--text-muted)] text-xs">Ability</span>
-          <p className="text-[var(--text-secondary)] font-medium truncate">{pokemon.ability}</p>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-1`}>Ability</span>
+          <p className={`${activeTheme.textMainClass} text-xs font-bold uppercase truncate`}>{pokemon.ability}</p>
         </div>
         <div>
-          <span className="text-[var(--text-muted)] text-xs">Nature</span>
-          <p className="text-[var(--text-secondary)] font-medium">{pokemon.nature}</p>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-1`}>Nature</span>
+          <p className={`${activeTheme.textMainClass} text-xs font-bold uppercase`}>{pokemon.nature}</p>
         </div>
         <div>
-          <span className="text-[var(--text-muted)] text-xs">EVs</span>
-          <p className="text-[var(--text-secondary)] font-medium text-xs truncate">{formatEvs(pokemon.evs)}</p>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-1`}>EVs</span>
+          <p className={`${activeTheme.textMainClass} text-[10px] font-bold uppercase truncate`}>{formatEvs(pokemon.evs)}</p>
         </div>
       </div>
 
       {/* Moves */}
-      <div>
-        <span className="text-[var(--text-muted)] text-xs block mb-1">Moves</span>
-        <div className="grid grid-cols-2 gap-1">
+      <div className={`pt-4 border-t-2 ${activeTheme.borderClass}`}>
+        <span className={`text-[9px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-2`}>Moves</span>
+        <div className="grid grid-cols-2 gap-2">
           {pokemon.moves.map((move, i) => (
             <div
               key={i}
-              className="bg-[var(--surface-3)] text-[var(--text-secondary)] text-xs 
-                         px-2.5 py-1.5 rounded-lg text-center truncate
-                         hover:bg-[var(--accent-primary)] hover:text-white transition-colors"
+              className={`border-2 ${activeTheme.borderClass} text-[10px] font-bold uppercase tracking-wide
+                         px-2 py-2 text-center truncate ${activeTheme.textMainClass}
+                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                         transition-colors cursor-default`}
             >
               {move}
             </div>

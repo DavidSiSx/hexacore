@@ -8,13 +8,28 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const KineticInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => {
+export interface KineticInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  variant?: "hero" | "standard";
+}
+
+export const KineticInput = forwardRef<HTMLInputElement, KineticInputProps>(
+  ({ className, variant = "standard", ...props }, ref) => {
     return (
       <input
         ref={ref}
         className={cn(
-          "w-full h-24 bg-transparent border-0 border-b-4 border-zinc-700 text-5xl font-black uppercase tracking-tighter text-white placeholder:text-zinc-700 focus:outline-none focus:border-[#DFE104] transition-none rounded-none",
+          // Base styles - usando variables CSS del tema
+          "w-full bg-transparent text-[var(--foreground)] font-black uppercase tracking-tighter",
+          "placeholder:text-[var(--foreground)]/30 focus:outline-none transition-none",
+          // Variants
+          variant === "hero" && [
+            "h-24 border-0 border-b-4 border-[var(--border)] text-5xl",
+            "focus:border-[var(--accent)]",
+          ],
+          variant === "standard" && [
+            "h-14 border-4 border-[var(--border)] px-4 text-lg",
+            "focus:border-[var(--accent)]",
+          ],
           className
         )}
         {...props}

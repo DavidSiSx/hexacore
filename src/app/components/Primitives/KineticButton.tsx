@@ -10,18 +10,39 @@ function cn(...inputs: ClassValue[]) {
 
 export interface KineticButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
 }
 
 export const KineticButton = forwardRef<HTMLButtonElement, KineticButtonProps>(
-  ({ className, variant = "primary", children, ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
+    const sizeClasses = {
+      sm: "text-xs px-4 py-2",
+      md: "text-lg px-6 py-3",
+      lg: "text-2xl px-8 py-4",
+    };
+
     return (
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center font-black uppercase tracking-tighter text-2xl px-8 py-4 transition-none active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
-          variant === "primary" && "bg-zinc-100 text-black hover:bg-[#DFE104]",
-          variant === "outline" && "border-4 border-zinc-700 text-zinc-100 hover:border-[#DFE104] hover:bg-[#DFE104] hover:text-black",
-          variant === "ghost" && "text-zinc-400 hover:text-[#DFE104] hover:bg-zinc-900",
+          // Base styles
+          "inline-flex items-center justify-center font-black uppercase tracking-tighter",
+          "border-4 transition-none active:scale-95 disabled:opacity-40 disabled:pointer-events-none",
+          // Size
+          sizeClasses[size],
+          // Variants usando variables CSS del tema
+          variant === "primary" && [
+            "bg-[var(--accent)] text-[var(--accent-foreground)] border-[var(--accent)]",
+            "hover:bg-[var(--foreground)] hover:text-[var(--background)] hover:border-[var(--foreground)]",
+          ],
+          variant === "outline" && [
+            "bg-transparent text-[var(--foreground)] border-[var(--border)]",
+            "hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]",
+          ],
+          variant === "ghost" && [
+            "bg-transparent text-[var(--foreground)] border-transparent opacity-60",
+            "hover:opacity-100 hover:text-[var(--accent)] hover:border-[var(--accent)]",
+          ],
           className
         )}
         {...props}
