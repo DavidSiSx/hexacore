@@ -67,7 +67,6 @@ const ITEM_ES_NAMES: Record<string, string> = {
   "White Herb": "Hierba Blanca",
   "Mental Herb": "Hierba Mental",
   "Power Herb": "Hierba Única",
-  "White Herb": "Hierba Blanca",
   "Babiri Berry": "Baya Baribá",
   "Chople Berry": "Baya Pomaro",
   "Kebia Berry": "Baya Kebia",
@@ -193,29 +192,51 @@ async function getPokeApiData(name: string) {
   }
 }
 
+interface PokeApiName {
+  language: { name: string };
+  name: string;
+}
+
+interface PokeApiFlavorText {
+  language: { name: string };
+  text?: string;
+  flavor_text?: string;
+  version_group?: { name: string };
+}
+
+interface CombatAttributes {
+  tier?: string;
+  altura?: number;
+  peso?: number;
+  usage_stats?: Record<string, number>;
+}
+
 async function getOfficialTranslations(type: "ability" | "move" | "item", name: string) {
   try {
     // Normalizar nombre para PokeAPI (slug)
     const slug = name.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
     const res = await fetch(`https://pokeapi.co/api/v2/${type === "item" ? "item" : type}/${slug}`);
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = (await res.json()) as {
+      names?: PokeApiName[];
+      flavor_text_entries?: PokeApiFlavorText[];
+    };
 
-    const esName = data.names?.find((n: any) => n.language.name === "es")?.name;
+    const esName = data.names?.find(n => n.language.name === "es")?.name;
     
     // Buscar descripción en español (flavor_text)
     let esDesc = "";
     if (type === "item") {
-      esDesc = data.flavor_text_entries?.find((f: any) => f.language.name === "es")?.text;
+      esDesc = data.flavor_text_entries?.find(f => f.language.name === "es")?.text || "";
     } else {
-      esDesc = data.flavor_text_entries?.find((f: any) => f.language.name === "es" && (f.version_group?.name === "scarlet-violet" || f.version_group?.name === "sword-shield"))?.flavor_text 
-              || data.flavor_text_entries?.find((f: any) => f.language.name === "es")?.flavor_text;
+      esDesc = data.flavor_text_entries?.find(f => f.language.name === "es" && (f.version_group?.name === "scarlet-violet" || f.version_group?.name === "sword-shield"))?.flavor_text 
+              || data.flavor_text_entries?.find(f => f.language.name === "es")?.flavor_text || "";
     }
 
     if (!esName && !esDesc) return null;
     return { 
       esName, 
-      esDesc: esDesc?.replace(/\n/g, " ").replace(/\f/g, " ") 
+      esDesc: esDesc.replace(/\n/g, " ").replace(/\f/g, " ") 
     };
   } catch {
     return null;
@@ -232,8 +253,8 @@ async function main() {
   for (let i = 0; i < objetos.length; i += OBJ_BATCH) {
     const batch = objetos.slice(i, i + OBJ_BATCH);
     await Promise.all(batch.map(async (obj) => {
-      const descObj = obj.descripciones as any || {};
-      const nombresObj = obj.nombres as any || {};
+      const descObj = (obj.descripciones as Record<string, string>) || {};
+      const nombresObj = (obj.nombres as Record<string, string>) || {};
       
       // Intentar obtener el nombre en inglés para el slug de PokeAPI
       // Prioridad: 1. Mapa inverso, 2. nombresObj.en, 3. obj.nombre (si no tiene tildes)
@@ -280,8 +301,8 @@ async function main() {
   for (let i = 0; i < movimientos.length; i += MOV_BATCH) {
     const batch = movimientos.slice(i, i + MOV_BATCH);
     await Promise.all(batch.map(async (mov) => {
-      const descMov = mov.descripciones as any || {};
-      const nombresMov = mov.nombres as any || {};
+      const descMov = (mov.descripciones as Record<string, string>) || {};
+      const nombresMov = (mov.nombres as Record<string, string>) || {};
       
       let esText = MOVE_ES_DESCRIPTIONS[mov.nombre] || descMov.es;
       let esName = nombresMov.es;
@@ -314,8 +335,8 @@ async function main() {
   for (let i = 0; i < habilidades.length; i += HAB_BATCH) {
     const batch = habilidades.slice(i, i + HAB_BATCH);
     await Promise.all(batch.map(async (hab) => {
-      const descHab = hab.descripciones as any || {};
-      const nombresHab = hab.nombres as any || {};
+      const descHab = (hab.descripciones as Record<string, string>) || {};
+      const nombresHab = (hab.nombres as Record<string, string>) || {};
 
       let esText = ABILITY_ES_DESCRIPTIONS[hab.nombre] || descHab.es;
       let esName = nombresHab.es;
@@ -352,7 +373,7 @@ async function main() {
     const batch = criaturas.slice(i, i + BATCH_SIZE);
     await Promise.all(batch.map(async (c) => {
       try {
-        const attrs = c.atributos_de_combate as any || {};
+        const attrs = (c.atributos_de_combate as unknown as CombatAttributes) || {};
         let altura = attrs.altura;
         let peso = attrs.peso;
 
@@ -367,16 +388,18 @@ async function main() {
         const TIER_FIXES: Record<string, string> = { "Clefable": "UU", "Gholdengo": "OU", "Kingambit": "OU" };
         const tier = TIER_FIXES[c.nombre] || attrs.tier || "UU";
         const usage_stats: Record<string, number> = attrs.usage_stats || { "OU": 2.5, "UU": 1.2, "VGC": 5.0 };
-        const nameEs = POKEMON_NAME_MAP[c.nombre] || (c.nombres as any)?.es || c.nombre;
+        const nameEs = POKEMON_NAME_MAP[c.nombre] || (c.nombres as Record<string, string>)?.es || c.nombre;
 
         await prisma.criatura.update({
           where: { id: c.id },
           data: {
-            nombres: { ...(c.nombres as any || {}), en: c.nombre, es: nameEs },
+            nombres: { ...(c.nombres as Record<string, string> || {}), en: c.nombre, es: nameEs },
             atributos_de_combate: { ...attrs, tier, altura, peso, usage_stats }
           }
         });
-      } catch (e) {}
+      } catch {
+        // Ignorar errores silenciosamente
+      }
     }));
     if (i % 100 === 0) console.log(`⏳ Pokémon: ${i}/${criaturas.length}`);
   }

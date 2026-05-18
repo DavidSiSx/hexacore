@@ -16,6 +16,7 @@ interface BrutalistEntryCardProps {
   spriteUrl?: string | null;
   isItem?: boolean;
   isMove?: boolean;
+  isAbility?: boolean;
   href: string;
 }
 

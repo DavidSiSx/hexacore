@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, TrendingDown, Info, Shield, Swords, Zap, Activity, Users, Target } from "lucide-react";
+import { TrendingUp, Swords, Zap, Activity, Users, Target } from "lucide-react";
 import { getMetagameStats, SmogonUsageStat, MetagameData } from "@/app/actions/metagame";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
-import Image from "next/image";
 
 interface MetagameDashboardProps {
   lang: string;
@@ -26,9 +25,18 @@ export function MetagameDashboard({ lang, initialData }: MetagameDashboardProps)
   const [selectedPoke, setSelectedPoke] = useState<SmogonUsageStat | null>(null);
   const { activeTheme } = useTheme();
 
+  const handleFormatChange = (formatId: string) => {
+    setActiveFormat(formatId);
+    if (formatId !== initialData.format) {
+      setLoading(true);
+    } else {
+      setData(initialData);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeFormat !== initialData.format) {
-      setLoading(true);
       getMetagameStats(activeFormat).then(res => {
         setData(res);
         setLoading(false);
@@ -58,7 +66,7 @@ export function MetagameDashboard({ lang, initialData }: MetagameDashboardProps)
           {FORMATS.map(f => (
             <button
               key={f.id}
-              onClick={() => setActiveFormat(f.id)}
+              onClick={() => handleFormatChange(f.id)}
               className={`px-4 py-2 text-xs font-black transition-all cursor-pointer ${
                 activeFormat === f.id 
                 ? `${f.color} text-white scale-105 shadow-[4px_4px_0px_black]` 
@@ -175,7 +183,7 @@ export function MetagameDashboard({ lang, initialData }: MetagameDashboardProps)
                   </tr>
                 ))
               ) : (
-                rest.map((poke, idx) => (
+                rest.map((poke) => (
                   <motion.tr
                     key={poke.pokemon}
                     initial={{ opacity: 0 }}
@@ -184,7 +192,7 @@ export function MetagameDashboard({ lang, initialData }: MetagameDashboardProps)
                     onClick={() => setSelectedPoke(poke)}
                     className="group hover:bg-current hover:text-[var(--bg)] cursor-pointer border-b-2 border-current/10 transition-colors"
                   >
-                    <td className="p-3 font-black italic opacity-50">{poke.rank}</td>
+                    <td className="p-3 font-black italic opacity-50 group-hover:opacity-100">{poke.rank}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <img src={poke.spriteUrl} alt="" className="w-8 h-8 object-contain pixelated group-hover:scale-125 transition-transform" />
@@ -202,11 +210,11 @@ export function MetagameDashboard({ lang, initialData }: MetagameDashboardProps)
                         <span className="text-xs font-black">{poke.usage.toFixed(2)}%</span>
                       </div>
                     </td>
-                    <td className="p-3 text-xs font-bold opacity-70 hidden md:table-cell uppercase">
+                    <td className="p-3 text-xs font-bold opacity-70 group-hover:opacity-100 hidden md:table-cell uppercase">
                       {Object.keys(poke.items)[0] || "---"}
                     </td>
                     <td className="p-3 text-right hidden md:table-cell">
-                      <button className="px-3 py-1 border-2 border-current text-[10px] font-black group-hover:bg-white group-hover:text-black">
+                      <button className="px-3 py-1 border-2 border-current text-[10px] font-black group-hover:bg-[var(--background)] group-hover:text-[var(--foreground)] transition-colors">
                          {lang === "es" ? "ANALIZAR" : "ANALYZE"}
                       </button>
                     </td>

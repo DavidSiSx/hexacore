@@ -32,20 +32,28 @@ export default async function PokemonDetail({ params }: { params: Promise<{ lang
   const pokemon = await getPokemonBySlug(slug);
   if (!pokemon) notFound();
 
-  const attrs = pokemon as any;
+  interface PokemonAttrs {
+    num?: number;
+    tags?: string[];
+    egg_groups?: string[];
+    usage_stats?: Record<string, number>;
+    peso?: number;
+    altura?: number;
+  }
+
+  const attrs = pokemon as unknown as PokemonAttrs;
   const bst = Object.values(pokemon.stats_base).reduce((a: number, b: number) => a + b, 0);
-  const tags: string[] = attrs.tags || [];
   const eggGroups: string[] = attrs.egg_groups || [];
   const usageStats = attrs.usage_stats || {};
 
   const isSpanish = lang === "es";
-  const nameEs = pokemon.nombres?.es;
+  const nameEs = (pokemon.nombres as unknown as Record<string, string>)?.es;
   const nameEn = pokemon.nombre;
   const hasDifferentNames = isSpanish && nameEs && nameEs.toLowerCase() !== nameEn.toLowerCase();
   
   const displayName = hasDifferentNames ? `${nameEs} [${nameEn}]` : nameEn;
-  const displayCategory = pokemon.categorias?.[lang] || pokemon.categorias?.en || "Unknown Pokémon";
-  const displayDesc = pokemon.descripciones?.[lang] || pokemon.descripciones?.en || "No Pokédex entry found.";
+  const displayCategory = (pokemon.categorias as unknown as Record<string, string>)?.[lang] || (pokemon.categorias as unknown as Record<string, string>)?.en || "Unknown Pokémon";
+  const displayDesc = (pokemon.descripciones as unknown as Record<string, string>)?.[lang] || (pokemon.descripciones as unknown as Record<string, string>)?.en || "No Pokédex entry found.";
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 w-full animate-fade-in flex flex-col gap-8">
@@ -116,7 +124,7 @@ export default async function PokemonDetail({ params }: { params: Promise<{ lang
                 <Zap className="w-3 h-3 fill-current" /> POKÉDEX DATA
               </h2>
               <p className="text-[var(--background)] font-bold uppercase leading-tight md:text-xl italic">
-                "{displayDesc}"
+                &quot;{displayDesc}&quot;
               </p>
             </div>
             <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-[var(--border)] -z-0" />
@@ -157,7 +165,7 @@ export default async function PokemonDetail({ params }: { params: Promise<{ lang
               
               {Object.keys(usageStats).length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {Object.entries(usageStats).sort((a:any, b:any) => b[1] - a[1]).map(([format, percent]: any) => (
+                  {Object.entries(usageStats).sort((a, b) => b[1] - a[1]).map(([format, percent]) => (
                     <div key={format} className="flex flex-col gap-1">
                       <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-wider">
                         <span>{format} <span className="opacity-40">SHOWDOWN</span></span>
@@ -187,8 +195,8 @@ export default async function PokemonDetail({ params }: { params: Promise<{ lang
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {(pokemon.habilidades_detalles || []).map((ab) => {
-                const abName = ab.nombres?.[lang] || ab.nombre;
-                const abDesc = ab.descripciones?.[lang] || ab.descripciones?.en || "No description.";
+                const abName = (ab.nombres as unknown as Record<string, string>)?.[lang] || ab.nombre;
+                const abDesc = (ab.descripciones as unknown as Record<string, string>)?.[lang] || (ab.descripciones as unknown as Record<string, string>)?.en || "No description.";
                 
                 return (
                   <Link 

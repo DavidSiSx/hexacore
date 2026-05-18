@@ -4,6 +4,7 @@ import "../globals.css";
 import Navbar from "@/app/components/Shared/Navbar";
 import { ThemeProvider } from "@/app/components/Shared/ThemeProvider";
 import { getDictionary } from "@/lib/dictionaries";
+import { PerformanceMonitor } from "@/app/components/Shared/PerformanceMonitor";
 
 const outfit = Outfit({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default async function RootLayout({
     <html lang={lang} className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          <PerformanceMonitor />
           <Navbar lang={lang} dict={dict} />
           <main className="flex flex-col flex-1">{children}</main>
         </ThemeProvider>
@@ -37,3 +39,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

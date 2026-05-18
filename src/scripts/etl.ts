@@ -2,6 +2,8 @@ import "dotenv/config";
 import { prisma } from "../lib/db";
 import { Dex } from "@pkmn/dex";
 
+import { Prisma } from "@prisma/client";
+
 const CONCURRENCY_LIMIT = 5;
 
 function toSlug(name: string): string {
@@ -11,7 +13,7 @@ function toSlug(name: string): string {
     .replace(/[^a-z0-9-]/g, "");
 }
 
-async function fetchWithRetry(url: string, retries = 3): Promise<any> {
+async function fetchWithRetry(url: string, retries = 3): Promise<unknown> {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url);
@@ -25,28 +27,47 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
   }
 }
 
+interface PokeApiName {
+  language: { name: string };
+  name: string;
+}
+
+interface PokeApiFlavorText {
+  language: { name: string };
+  text?: string;
+  flavor_text?: string;
+  version_group?: { name: string };
+}
+
 async function fetchPokeApiTranslations(type: "pokemon" | "item" | "move" | "ability", nameOrId: string | number) {
   try {
     const slug = typeof nameOrId === "string" ? toSlug(nameOrId) : nameOrId;
-    const data = await fetchWithRetry(`https://pokeapi.co/api/v2/${type}/${slug}`);
+    const data = (await fetchWithRetry(`https://pokeapi.co/api/v2/${type}/${slug}`)) as {
+      id: number;
+      names?: PokeApiName[];
+      flavor_text_entries?: PokeApiFlavorText[];
+      species?: { url: string };
+    } | null;
     if (!data) return null;
 
-    const esName = data.names?.find((n: any) => n.language.name === "es")?.name;
+    const esName = data.names?.find(n => n.language.name === "es")?.name;
     
     let esDesc = "";
     if (type === "item") {
       // Reversar para obtener la descripción más reciente (evita bugs como el de Babiri Berry en PokeAPI)
-      esDesc = data.flavor_text_entries?.slice().reverse().find((f: any) => f.language.name === "es")?.text;
+      esDesc = data.flavor_text_entries?.slice().reverse().find(f => f.language.name === "es")?.text || "";
     } else if (type === "pokemon") {
-      const speciesData = await fetchWithRetry(data.species.url);
+      const speciesData = (await fetchWithRetry(data.species?.url || "")) as {
+        flavor_text_entries?: PokeApiFlavorText[];
+      } | null;
       if (speciesData) {
-        esDesc = speciesData.flavor_text_entries?.slice().reverse().find((f: any) => f.language.name === "es")?.flavor_text;
+        esDesc = speciesData.flavor_text_entries?.slice().reverse().find(f => f.language.name === "es")?.flavor_text || "";
       }
     } else {
       // Para movimientos/habilidades: Preferir Escarlata/Púrpura o Espada/Escudo
       const entries = data.flavor_text_entries || [];
-      esDesc = entries.find((f: any) => f.language.name === "es" && ["scarlet-violet", "sword-shield", "legends-arceus"].includes(f.version_group?.name))?.flavor_text 
-              || entries.slice().reverse().find((f: any) => f.language.name === "es")?.flavor_text;
+      esDesc = entries.find(f => f.language.name === "es" && ["scarlet-violet", "sword-shield", "legends-arceus"].includes(f.version_group?.name || ""))?.flavor_text 
+              || entries.slice().reverse().find(f => f.language.name === "es")?.flavor_text || "";
     }
 
     return {
@@ -54,7 +75,7 @@ async function fetchPokeApiTranslations(type: "pokemon" | "item" | "move" | "abi
       esName: esName || null,
       esDesc: esDesc?.replace(/\n/g, " ").replace(/\f/g, " ") || null
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -87,7 +108,7 @@ async function main() {
         slug: toSlug(hab.name),
         nombres: { en: hab.name, es: official?.esName || hab.name },
         descripciones: { en: hab.shortDesc, es: official?.esDesc || hab.shortDesc },
-        atributos: { ...hab }
+        atributos: hab as unknown as Prisma.InputJsonValue
       }
     });
   });
@@ -106,7 +127,7 @@ async function main() {
         potencia: mov.basePower,
         precision: mov.accuracy === true ? 100 : (mov.accuracy || 0),
         descripciones: { en: mov.shortDesc, es: official?.esDesc || mov.shortDesc },
-        atributos: { ...mov }
+        atributos: mov as unknown as Prisma.InputJsonValue
       }
     });
   });
@@ -122,7 +143,7 @@ async function main() {
         nombres: { en: item.name, es: official?.esName || item.name },
         descripciones: { en: item.desc, es: official?.esDesc || item.desc },
         sprite_url: `https://play.pokemonshowdown.com/sprites/itemicons/${toSlug(item.name)}.png`,
-        atributos: { ...item }
+        atributos: item as unknown as Prisma.InputJsonValue
       }
     });
   });
@@ -146,8 +167,8 @@ async function main() {
           stats_base: s.baseStats,
           habilidades: Object.values(s.abilities),
           peso: s.weightkg,
-          altura: s.heightm,
-          egg_groups: s.eggGroups,
+          altura: (s as unknown as { heightm: number }).heightm,
+          egg_groups: (s as unknown as { eggGroups: string[] }).eggGroups,
           tags: s.tags || []
         }
       }
@@ -177,7 +198,7 @@ async function main() {
           stats_base: s.baseStats,
           habilidades: Object.values(s.abilities),
           peso: s.weightkg,
-          altura: s.heightm,
+          altura: (s as unknown as { heightm: number }).heightm,
           tags: ["alternate_form", ...(s.tags || [])]
         }
       }

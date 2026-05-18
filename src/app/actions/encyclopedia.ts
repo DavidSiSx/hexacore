@@ -45,10 +45,11 @@ export async function getAllMoves(page = 1, perPage = 60, filters?: MoveFilters 
   
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    const lang = filters.lang || "en";
+    // Sanitización preventiva del path de lenguajes en JSONB
+    const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
     where.OR = [
       { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [lang], string_contains: q } },
+      { nombres: { path: [cleanLang], string_contains: q } },
       { nombres: { path: ["es"], string_contains: q } }
     ];
   }
@@ -92,10 +93,11 @@ export async function getAllAbilities(page = 1, perPage = 60, filters?: { search
   
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    const lang = filters.lang || "en";
+    // Sanitización preventiva del path de lenguajes en JSONB
+    const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
     where.OR = [
       { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [lang], string_contains: q } },
+      { nombres: { path: [cleanLang], string_contains: q } },
       { nombres: { path: ["es"], string_contains: q } }
     ];
   }
@@ -147,10 +149,11 @@ export async function getAllItems(page = 1, perPage = 60, filters?: { searchQuer
 
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    const lang = filters.lang || "en";
+    // Sanitización preventiva del path de lenguajes en JSONB
+    const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
     where.OR = [
       { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [lang], string_contains: q } },
+      { nombres: { path: [cleanLang], string_contains: q } },
       { nombres: { path: ["es"], string_contains: q } }
     ];
   }

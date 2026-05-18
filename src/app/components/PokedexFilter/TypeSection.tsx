@@ -26,7 +26,7 @@ export function TypeSection({ lang, dictionary, filters, setFilters, mode }: Fil
           {["AND", "OR"].map(logic => (
             <button 
               key={logic}
-              onClick={() => setFilters((prev: PokemonFilters) => ({ ...prev, types: { ...prev.types, logic: logic as "AND" | "OR" } }))}
+              onClick={() => setFilters((prev: PokemonFilters) => ({ ...prev, types: { values: prev.types?.values || [], logic: logic as "AND" | "OR" } }))}
               className={`px-2 py-1 text-xs font-black border-2 transition-none ${(filters.types?.logic || "AND") === logic ? `${activeTheme.borderClass} ${activeTheme.accentClass}` : "border-zinc-800 text-zinc-600"}`}
             >
               {logic}

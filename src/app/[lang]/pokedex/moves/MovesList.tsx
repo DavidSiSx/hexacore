@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllMoves, type MoveResult } from "@/app/actions/encyclopedia";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
 import { BrutalistEntryCard } from "@/app/components/Shared/BrutalistEntryCard";
@@ -22,9 +22,14 @@ export default function MovesList({
   const [filterType, setFilterType] = useState<string>("");
   const [filterCategory, setFilterCategory] = useState<string>("");
   const { activeTheme } = useTheme();
+  const isFirstMount = useRef(true);
 
   // Efecto para manejar la carga con debounce y evitar race conditions
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     let isMounted = true;
 
     const handler = setTimeout(async () => {

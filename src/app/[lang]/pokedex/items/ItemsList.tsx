@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { searchItems, getAllItems, type ItemResult } from "@/app/actions/encyclopedia";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
 import { BrutalistEntryCard } from "@/app/components/Shared/BrutalistEntryCard";
@@ -25,9 +25,14 @@ export default function ItemsList({
   const [total, setTotal] = useState(initialData.total);
   const [loading, setLoading] = useState(false);
   const { activeTheme } = useTheme();
+  const isFirstMount = useRef(true);
 
   // Efecto con debounce y protección contra race conditions
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     let isMounted = true;
 
     const handler = setTimeout(async () => {

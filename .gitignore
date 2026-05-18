@@ -44,6 +44,8 @@ next-env.d.ts
 # 🗑️ Temporary Scratch Scripts & DB Experiments
 check*.ts
 drop.js
+/scratch/
+/src/data/generated_*.json
 
 # 📁 OS Generated Files
 .DS_Store
@@ -51,3 +53,5 @@ Thumbs.db
 
 # 🌐 Vercel/Cloud config caches
 .vercel
+/pnpm-workspace.yaml
+

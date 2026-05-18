@@ -90,7 +90,21 @@ export async function getAllPokemon(
         ...params
       ),
       prisma.$queryRawUnsafe<Record<string, unknown>[]>(
-        `SELECT * FROM "Criatura" WHERE ${where} ORDER BY ${orderSql} LIMIT $${nextParamIdx} OFFSET $${nextParamIdx + 1}`,
+        `SELECT id, nombre, slug, nombres, descripciones, categorias, es_fakemon,
+        jsonb_build_object(
+          'tipos', "atributos_de_combate"->'tipos',
+          'tier', "atributos_de_combate"->'tier',
+          'sprite_url', "atributos_de_combate"->'sprite_url',
+          'stats_base', "atributos_de_combate"->'stats_base',
+          'habilidades', "atributos_de_combate"->'habilidades',
+          'tags', "atributos_de_combate"->'tags',
+          'generacion', "atributos_de_combate"->'generacion',
+          'num', "atributos_de_combate"->'num',
+          'peso', "atributos_de_combate"->'peso',
+          'altura', "atributos_de_combate"->'altura',
+          'usage_stats', "atributos_de_combate"->'usage_stats'
+        ) AS "atributos_de_combate"
+        FROM "Criatura" WHERE ${where} ORDER BY ${orderSql} LIMIT $${nextParamIdx} OFFSET $${nextParamIdx + 1}`,
         ...params, 
         perPage, 
         (page - 1) * perPage
@@ -121,8 +135,9 @@ function buildWhereClause(filters?: PokemonFilters) {
       conditions.push(`("atributos_de_combate"->>'num')::int = $${idx++}`);
       params.push(Number(query));
     } else {
-      const lang = filters.lang || "en";
-      conditions.push(`(LOWER("nombres"->>'${lang}') LIKE $${idx} OR LOWER("nombre") LIKE $${idx})`);
+      // Blindaje estricto de lang para evitar inyecciones en el jsonb path
+      const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
+      conditions.push(`(LOWER("nombres"->>'${cleanLang}') LIKE $${idx} OR LOWER("nombre") LIKE $${idx})`);
       params.push(`%${query}%`);
       idx++;
     }
@@ -162,6 +177,10 @@ function buildWhereClause(filters?: PokemonFilters) {
   if (filters?.stats) {
     for (const [stat, range] of Object.entries(filters.stats)) {
       if (!range) continue;
+      // Blindar contra inyecciones SQL a través de llaves de objetos dinámicas de estadísticas
+      if (stat !== "bst" && !STAT_KEYS.includes(stat)) {
+        continue;
+      }
       const { min, max } = range as { min?: number; max?: number };
       
       let statSql: string;
@@ -279,3 +298,24 @@ export async function getAllFakemons(): Promise<PokemonSearchResult[]> {
     throw new Error(`Failed to fetch fakemons: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+
+export async function searchPokemonSpecies(query: string, limit = 50): Promise<{ nombre: string; slug: string }[]> {
+  if (!query || query.trim().length < 2) return [];
+  const q = query.trim().toLowerCase();
+  const records = await prisma.criatura.findMany({
+    where: {
+      OR: [
+        { nombre: { contains: q, mode: "insensitive" } },
+        { slug: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    take: limit,
+    select: {
+      nombre: true,
+      slug: true,
+    },
+    orderBy: { nombre: "asc" },
+  });
+  return records;
+}
+

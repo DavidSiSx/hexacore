@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, use } from "react";
+import { useState, useMemo } from "react";
 import { calculate, Generations, Pokemon, Move, Field } from "@smogon/calc";
-import type { StatsTable, StatusName, Terrain, Weather, GameType } from "@smogon/calc/dist/data/interface";
+import type { StatsTable, StatusName, Terrain, Weather, GameType, TypeName } from "@smogon/calc/dist/data/interface";
 import { Dex } from "@pkmn/dex";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
 import { Calculator, RotateCcw, ChevronDown, Swords, Shield, Zap, Sun, Cloud, Snowflake, Wind } from "lucide-react";
@@ -31,7 +31,15 @@ const allAbilities = Array.from(Dex.abilities.all())
   .sort((a, b) => a.name.localeCompare(b.name));
 
 // Status conditions available
-const STATUS_CONDITIONS: StatusName[] = ["Healthy", "Paralysis", "Poison", "Burn", "Sleep", "Freeze"];
+const STATUS_CONDITIONS = [
+  { value: "", label: "Healthy" },
+  { value: "par", label: "Paralysis" },
+  { value: "psn", label: "Poison" },
+  { value: "tox", label: "Toxic" },
+  { value: "brn", label: "Burn" },
+  { value: "slp", label: "Sleep" },
+  { value: "frz", label: "Freeze" },
+] as const;
 
 // Field weathers
 const WEATHERS: (Weather | "")[] = ["", "Sun", "Rain", "Sand", "Snow", "Harsh Sunshine", "Heavy Rain", "Strong Winds"];
@@ -85,7 +93,7 @@ interface SideState {
   teraType: string;
   ability: string;
   item: string;
-  status: StatusName;
+  status: StatusName | "";
   currentHP: number;
   moves: MoveData[];
   selectedMoveIndex: number;
@@ -166,7 +174,7 @@ const createDefaultSide = (nature: string = "Adamant", evs?: Partial<StatsTable>
   teraType: "",
   ability: "",
   item: "",
-  status: "Healthy",
+  status: "",
   currentHP: 100,
   moves: [],
   selectedMoveIndex: 0,
@@ -201,8 +209,7 @@ function dexToMoveData(move: typeof allMoves[0]): MoveData {
   };
 }
 
-export default function DamageCalcPage({ params }: { params: Promise<{ lang: string }> }) {
-  const resolvedParams = use(params);
+export default function DamageCalcPage() {
   const { activeTheme } = useTheme();
 
   const [attacker, setAttacker] = useState<SideState>(createDefaultSide("Adamant"));
@@ -231,6 +238,25 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
   const [crit, setCrit] = useState(false);
   const [showFieldOptions, setShowFieldOptions] = useState(true);
 
+  // Helper to map UI field side state to Smogon Side class options
+  const mapFieldSideToSide = (side: FieldSideState) => {
+    return {
+      spikes: side.spikes,
+      isSR: side.stealthRock,
+      isReflect: side.reflect,
+      isLightScreen: side.lightScreen,
+      isAuroraVeil: side.auroraVeil,
+      isTailwind: side.tailwind,
+      isFriendGuard: side.friendGuard,
+      isHelpingHand: side.helpingHand,
+      isBattery: side.isBattery,
+      isPowerSpot: side.isPowerSpot,
+      isFlowerGift: side.isFlowerGift,
+      isSwitching: side.isSwitching || undefined,
+      isSaltCure: side.isSaltCure,
+    };
+  };
+
   // Calculate damage for a specific move
   const calculateMoveResult = (moveData: MoveData | undefined, attackerState: SideState, defenderState: SideState, fieldState: FieldState, isCrit: boolean) => {
     if (!attackerState.species || !defenderState.species || !moveData) return null;
@@ -242,29 +268,42 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         ivs: attackerState.ivs,
         nature: attackerState.nature,
         boosts: attackerState.boosts,
-        teraType: attackerState.teraType || undefined,
+        teraType: (attackerState.teraType || undefined) as unknown as TypeName,
         ability: attackerState.ability || undefined,
         item: attackerState.item || undefined,
-        status: attackerState.status === "Healthy" ? undefined : attackerState.status.toLowerCase() as any,
+        status: (attackerState.status || undefined) as unknown as StatusName,
       });
 
-      // Create defender Pokemon first without curHP to get maxHP
+      // Calculate defender curHP from percentage by instantiating a temp defender first
+      let curHPVal: number | undefined = undefined;
+      if (defenderState.currentHP < 100) {
+        const tempDefender = new Pokemon(gen, defenderState.species, {
+          level: defenderState.level,
+          evs: defenderState.evs,
+          ivs: defenderState.ivs,
+          nature: defenderState.nature,
+          boosts: defenderState.boosts,
+          teraType: (defenderState.teraType || undefined) as unknown as TypeName,
+          ability: defenderState.ability || undefined,
+          item: defenderState.item || undefined,
+          status: (defenderState.status || undefined) as unknown as StatusName,
+        });
+        curHPVal = Math.round((defenderState.currentHP / 100) * tempDefender.maxHP());
+      }
+
+      // Create defender Pokemon with resolved curHP in constructor
       const defenderPokemon = new Pokemon(gen, defenderState.species, {
         level: defenderState.level,
         evs: defenderState.evs,
         ivs: defenderState.ivs,
         nature: defenderState.nature,
         boosts: defenderState.boosts,
-        teraType: defenderState.teraType || undefined,
+        teraType: (defenderState.teraType || undefined) as unknown as TypeName,
         ability: defenderState.ability || undefined,
         item: defenderState.item || undefined,
-        status: defenderState.status === "Healthy" ? undefined : defenderState.status.toLowerCase() as any,
+        status: (defenderState.status || undefined) as unknown as StatusName,
+        curHP: curHPVal,
       });
-      
-      // Now set current HP based on percentage
-      if (defenderState.currentHP < 100) {
-        defenderPokemon.curHP = Math.round((defenderState.currentHP / 100) * defenderPokemon.maxHP());
-      }
 
       const move = new Move(gen, moveData.name, {
         isCrit: isCrit,
@@ -284,8 +323,8 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
         isTabletsOfRuin: fieldState.isTabletsOfRuin,
         isSwordOfRuin: fieldState.isSwordOfRuin,
         isVesselOfRuin: fieldState.isVesselOfRuin,
-        attackerSide: fieldState.attackerSide,
-        defenderSide: fieldState.defenderSide,
+        attackerSide: mapFieldSideToSide(fieldState.attackerSide) as unknown as Record<string, unknown>,
+        defenderSide: mapFieldSideToSide(fieldState.defenderSide) as unknown as Record<string, unknown>,
       });
 
       return calculate(gen, attackerPokemon, defenderPokemon, move, calcField);
@@ -331,8 +370,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
       let koChance = "";
       try {
         // Try to get KO chance text
-        const koResult = result.kpiChance?.();
-        if (koResult) koChance = koResult;
+        const koResult = (result as unknown as { kochance?: () => string | { text?: string } }).kochance?.();
+        if (koResult) {
+          koChance = typeof koResult === "string" ? koResult : (koResult.text || "");
+        }
       } catch {}
       
       if (!koChance) {
@@ -383,8 +424,10 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
 
     let koChance = "";
     try {
-      const koResult = (damageResult as any).kpiChance?.();
-      if (koResult) koChance = koResult;
+      const koResult = (damageResult as unknown as { kochance?: () => string | { text?: string } }).kochance?.();
+      if (koResult) {
+        koChance = typeof koResult === "string" ? koResult : (koResult.text || "");
+      }
     } catch {}
     
     if (!koChance) {
@@ -425,8 +468,6 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
     }, [query]);
 
     const selectPokemon = (pokemon: PokemonData) => {
-      const species = Dex.species.get(pokemon.name);
-      
       setSide(prev => ({
         ...prev,
         species: pokemon.name,
@@ -552,7 +593,7 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
                   e.stopPropagation(); 
                   setSide(prev => { 
                     const newMoves = [...prev.moves]; 
-                    newMoves[index] = undefined as any; 
+                    newMoves[index] = undefined as unknown as MoveData; 
                     return { ...prev, moves: newMoves.filter(Boolean) }; 
                   }); 
                 }} 
@@ -881,7 +922,7 @@ export default function DamageCalcPage({ params }: { params: Promise<{ lang: str
               onChange={(e) => setSide(prev => ({ ...prev, status: e.target.value as StatusName }))}
               className="w-full bg-black border border-current/30 px-2 py-1 text-[10px] font-bold focus:outline-none"
             >
-              {STATUS_CONDITIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              {STATUS_CONDITIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
           <div>

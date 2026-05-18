@@ -47,7 +47,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ lang: s
             <h1 className="text-3xl font-black uppercase tracking-tighter text-[var(--foreground)]">{displayName}</h1>
             <div className="flex items-center justify-center gap-2 mt-2 opacity-60">
               <Tag className="w-3 h-3" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{item.categoria || "ITEM"}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">{(item.atributos as Record<string, unknown>)?.category as string || "ITEM"}</span>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ lang: s
                 <Info className="w-3 h-3 fill-current" /> <T es="EFECTO DEL OBJETO" en="ITEM EFFECT" />
               </h2>
               <p className="text-[var(--background)] font-bold uppercase leading-tight text-lg italic">
-                "{displayDesc}"
+                &quot;{displayDesc}&quot;
               </p>
             </div>
             <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-[var(--border)] -z-0" />

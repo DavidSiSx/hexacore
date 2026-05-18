@@ -41,11 +41,8 @@ const SHOWDOWN_NAME_MAP: Record<string, string> = {
   "inteleon-gmax": "inteleon-gmax",
   "cinderace-gmax": "cinderace-gmax",
   "rillaboom-gmax": "rillaboom-gmax",
-  "venusaur-gmax": "venusaur-gmax",
   "venusaurgmax": "venusaur-gmax",
-  "charizard-gmax": "charizard-gmax",
   "charizardgmax": "charizard-gmax",
-  "blastoise-gmax": "blastoise-gmax",
   "blastoisegmax": "blastoise-gmax",
 };
 

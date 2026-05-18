@@ -9,6 +9,19 @@ import {
 } from '../../application/ports/KnowledgeVaultPorts';
 
 /**
+ * Normaliza nombres para generar slugs aptos para URLs limpias.
+ */
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // elimina acentos
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
  * Adaptador concreto para interactuar con PostgreSQL mediante Prisma Client.
  * Implementa el patrón Repositorio garantizando el encapsulamiento de sentencias
  * SQL nativas y operaciones ORM transaccionales.
@@ -32,10 +45,12 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
     const nombres = payload.names as unknown as Prisma.InputJsonObject;
     const descripciones = payload.descriptions as unknown as Prisma.InputJsonObject;
     const atributos = payload.attributes as unknown as Prisma.InputJsonObject;
+    const slug = toSlug(payload.name);
 
     await this.prisma.objeto.upsert({
       where: { nombre: payload.name },
       update: {
+        slug,
         nombres,
         descripciones,
         sprite_url: payload.spriteUrl,
@@ -43,6 +58,7 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
       },
       create: {
         nombre: payload.name,
+        slug,
         nombres,
         descripciones,
         sprite_url: payload.spriteUrl,
@@ -58,16 +74,19 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
     const nombres = payload.names as unknown as Prisma.InputJsonObject;
     const descripciones = payload.descriptions as unknown as Prisma.InputJsonObject;
     const atributos = payload.attributes as unknown as Prisma.InputJsonObject;
+    const slug = toSlug(payload.name);
 
     await this.prisma.habilidad.upsert({
       where: { nombre: payload.name },
       update: {
+        slug,
         nombres,
         descripciones,
         atributos
       },
       create: {
         nombre: payload.name,
+        slug,
         nombres,
         descripciones,
         atributos
@@ -82,10 +101,12 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
     const nombres = payload.names as unknown as Prisma.InputJsonObject;
     const descripciones = payload.descriptions as unknown as Prisma.InputJsonObject;
     const atributos = payload.attributes as unknown as Prisma.InputJsonObject;
+    const slug = toSlug(payload.name);
 
     await this.prisma.movimiento.upsert({
       where: { nombre: payload.name },
       update: {
+        slug,
         nombres,
         tipo: payload.type,
         categoria: payload.category,
@@ -96,6 +117,7 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
       },
       create: {
         nombre: payload.name,
+        slug,
         nombres,
         tipo: payload.type,
         categoria: payload.category,
@@ -115,10 +137,12 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
     const descripciones = payload.descriptions as unknown as Prisma.InputJsonObject;
     const categorias = payload.categories as unknown as Prisma.InputJsonObject;
     const atributos_de_combate = payload.combatAttributes as unknown as Prisma.InputJsonObject;
+    const slug = toSlug(payload.name);
 
     await this.prisma.criatura.upsert({
       where: { nombre: payload.name },
       update: {
+        slug,
         autor: payload.author,
         es_fakemon: payload.isFakemon,
         nombres,
@@ -128,6 +152,7 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
       },
       create: {
         nombre: payload.name,
+        slug,
         autor: payload.author,
         es_fakemon: payload.isFakemon,
         nombres,

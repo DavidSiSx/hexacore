@@ -1,7 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// Cliente para usar en componentes del lado del cliente (browser)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Cliente de Supabase seguro para el navegador (Client Components)
+// Se sincroniza automáticamente con la persistencia en cookies de la sesión
+export const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);

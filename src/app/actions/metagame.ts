@@ -43,7 +43,9 @@ async function fetchSmogonChaos(format: string): Promise<{ data: any; info: any 
     for (const cutoff of cutoffs) {
       const url = `https://www.smogon.com/stats/${year}-${month}/chaos/${format}-${cutoff}.json`;
       try {
-        const response = await fetch(url, { next: { revalidate: 86400 } }); // Cache 24h
+        // Desactivamos el data cache nativo de Next.js (cache: "no-store") porque Smogon chaos files superan los 18MB
+        // y Next.js tiene un límite estricto de 2MB por objeto guardado en su caché de disco.
+        const response = await fetch(url, { cache: "no-store" });
         if (response.ok) {
           const raw = await response.json();
           if (raw.data && raw.info) return raw;
@@ -56,7 +58,28 @@ async function fetchSmogonChaos(format: string): Promise<{ data: any; info: any 
   return null;
 }
 
+interface MemoryCacheEntry {
+  data: MetagameData;
+  timestamp: number;
+}
+
+// Caché en memoria para evitar descargar y procesar archivos masivos en cada petición
+const metagameCache: Record<string, MemoryCacheEntry> = {};
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 horas
+
 export async function getMetagameStats(format: string = "gen9ou"): Promise<MetagameData> {
+  // Blindaje preventivo contra SSRF y manipulación de rutas externas
+  if (!/^[a-z0-9-]+$/.test(format)) {
+    throw new Error("Invalid format parameter.");
+  }
+
+  const ahora = Date.now();
+  const cached = metagameCache[format];
+  if (cached && (ahora - cached.timestamp < CACHE_TTL_MS)) {
+    console.log(`[MetagameStats] Retornando datos procesados desde caché de memoria RAM para: ${format}`);
+    return cached.data;
+  }
+
   try {
     const rawData = await fetchSmogonChaos(format);
     
@@ -106,11 +129,19 @@ export async function getMetagameStats(format: string = "gen9ou"): Promise<Metag
       .slice(0, 100)
       .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
-    return {
+    const resultData: MetagameData = {
       format: info.metagame || format,
       totalBattles: info["number of battles"] || 0,
       pokemonList: sorted
     };
+
+    // Guardamos en el caché de memoria
+    metagameCache[format] = {
+      data: resultData,
+      timestamp: ahora
+    };
+
+    return resultData;
 
   } catch (error) {
     console.error("Error fetching metagame stats:", error);

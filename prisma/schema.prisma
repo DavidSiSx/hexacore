@@ -44,6 +44,19 @@ model DocumentoConocimiento {
   @@index([embedding])
 }
 
+/// Sinergias del metajuego calculadas a partir de co-ocurrencia en Smogon Chaos
+model SinergiaMetagame {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pokemon_a  String
+  pokemon_b  String
+  usage_rate Float
+  formato    String
+  created_at DateTime @default(now())
+
+  @@unique([pokemon_a, pokemon_b, formato])
+  @@index([pokemon_a])
+}
+
 /// Sustrato de Inteligencia de Trazas: Registra la "Verdad Terrestre" cuando un usuario corrige a la IA.
 model TrazaCorreccion {
   id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -130,5 +143,19 @@ model Equipo {
   updated_at DateTime @updatedAt
   usuario    Usuario  @relation(fields: [usuarioId], references: [id])
 
+  @@index([usuarioId])
+}
+
+/// Control de tasa de peticiones para endpoints críticos/costosos.
+model RateLimit {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuarioId  String   @db.Uuid
+  endpoint   String   // Ej: "buildTeamAction"
+  peticiones Int      @default(1)
+  resetAt    DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([usuarioId, endpoint])
   @@index([usuarioId])
 }

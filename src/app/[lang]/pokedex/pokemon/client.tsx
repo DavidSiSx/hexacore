@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllPokemon, type PokemonSearchResult, type PokemonFilters } from "@/app/actions/pokedex";
 import { PokemonCard } from "@/app/components/PokemonCard";
 import { BrutalistSkeleton } from "@/app/components/Primitives/BrutalistSkeleton";
@@ -31,6 +31,8 @@ export default function PokemonGridClient({
     lang: lang,
   });
 
+  const isFirstMount = useRef(true);
+
   // Interceptor inteligente de filtros para resetear siempre la paginación a la página 1 cuando cambian
   const setFilters = useCallback((updater: any) => {
     setFiltersState(prev => {
@@ -43,6 +45,10 @@ export default function PokemonGridClient({
 
   // Efecto para manejar la carga de datos con debounce y protección contra race conditions
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     let isMounted = true;
     
     const handler = setTimeout(async () => {

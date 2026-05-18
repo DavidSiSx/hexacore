@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllAbilities, type AbilityResult } from "@/app/actions/encyclopedia";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
 import { BrutalistEntryCard } from "@/app/components/Shared/BrutalistEntryCard";
@@ -20,9 +20,14 @@ export default function AbilitiesList({
   const [total, setTotal] = useState(initialData.total);
   const [loading, setLoading] = useState(false);
   const { activeTheme } = useTheme();
+  const isFirstMount = useRef(true);
 
   // Efecto con debounce para evitar race conditions y manejar reset de estado
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     let isMounted = true;
 
     const handler = setTimeout(async () => {
