@@ -12,6 +12,10 @@ export function exportTeamToShowdown(members: PokemonBuild[]): string {
       output += `Ability: ${p.ability}\n`;
     }
     
+    if (p.level && p.level !== 100) {
+      output += `Level: ${p.level}\n`;
+    }
+
     if (p.teraType) {
       output += `Tera Type: ${p.teraType}\n`;
     }
@@ -90,6 +94,7 @@ export function importTeamFromShowdown(text: string): PokemonBuild[] {
     let ability = "None";
     let nature = "Serious";
     let teraType = "Normal";
+    let level: number | undefined = undefined;
     const evs: Record<string, number> = { HP: 0, Atk: 0, Def: 0, SpA: 0, SpD: 0, Spe: 0 };
     const ivs: Record<string, number> = { HP: 31, Atk: 31, Def: 31, SpA: 31, SpD: 31, Spe: 31 };
     const moves: string[] = [];
@@ -99,6 +104,11 @@ export function importTeamFromShowdown(text: string): PokemonBuild[] {
 
       if (line.startsWith("Ability:")) {
         ability = line.replace("Ability:", "").trim();
+      } else if (line.startsWith("Level:")) {
+        const parsedLevel = parseInt(line.replace("Level:", "").trim());
+        if (!isNaN(parsedLevel)) {
+          level = parsedLevel;
+        }
       } else if (line.startsWith("Tera Type:")) {
         teraType = line.replace("Tera Type:", "").trim();
       } else if (line.endsWith("Nature")) {
@@ -158,6 +168,7 @@ export function importTeamFromShowdown(text: string): PokemonBuild[] {
       moves,
       teraType,
       role: "Atacante / Soporte", // Rol por defecto al importar
+      level,
     });
 
     if (members.length >= 6) break;

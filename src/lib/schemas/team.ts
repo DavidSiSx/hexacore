@@ -32,6 +32,7 @@ export const PokemonBuildSchema = z.object({
   moves: z.array(z.string()).max(4),
   teraType: z.string(),
   role: z.string(),
+  level: z.number().optional(),
   synergyScore: z.number().optional(),
   synergyReason: z.string().optional(),
 });

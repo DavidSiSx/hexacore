@@ -48,8 +48,9 @@ export const teamResponseSchema = {
             description: "Exactamente 4 movimientos legales",
             items: { type: SchemaType.STRING }
           },
-           teraType: { type: SchemaType.STRING, description: "Tipo Teracristal ideal" },
+          teraType: { type: SchemaType.STRING, description: "Tipo Teracristal ideal" },
           role: { type: SchemaType.STRING, description: "Breve explicación de su rol en el equipo" },
+          level: { type: SchemaType.INTEGER, description: "Nivel del Pokémon (ej. 5 para Little Cup, 50 para VGC o 100 para otros)" },
           synergyScore: { type: SchemaType.INTEGER, description: "Porcentaje del 0 al 100 que refleja su nivel de sinergia competitiva con el resto del equipo" },
           synergyReason: { type: SchemaType.STRING, description: "Detalle matemático/estratégico del porqué de su sinergia (co-ocurrencias, coberturas, soporte)" }
         },
@@ -109,11 +110,19 @@ export async function generateTeamWithGemini(
       } else if (options.format === "championship-series") {
         constraintsPrompt += "Debes diseñar el equipo bajo las reglas oficiales del VGC Championship Series (formato de Campeonato Mundial oficial). Asegura que el equipo sea de nivel competitivo supremo, con sets optimizados de alta sinergia.";
       } else if (options.format === "smogon-ou") {
-        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles OU (Generation 9). Respeta las bans competitivas usuales (ningún Pokémon Ubers como Koraidon, Miraidon, Flutter Mane, Calyrex, etc.).";
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles OU (Generation 9). Respeta las bans competitivas usuales (ningún Pokémon Ubers como Koraidon, Miraidon, Flutter Mane, Calyrex, etc.). En este formato, carecer de un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) es una deficiencia crítica, y debes asegurar un control de velocidad (Choice Scarf o revenge killer rápido).";
       } else if (options.format === "smogon-ubers") {
-        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles Ubers (Generation 9). Se permiten los Pokémon más poderosos y restringidos del juego sin restricciones de nivel de poder (ej. Calyrex-Shadow, Koraidon, Miraidon).";
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles Ubers (Generation 9). Se permiten los Pokémon más poderosos y restringidos del juego sin restricciones de nivel de poder (ej. Calyrex-Shadow, Koraidon, Miraidon). Ten en cuenta que el clima/terreno es dominante (Koraidon, Kyogre, Miraidon) y debes controlarlo o responder a él.";
       } else if (options.format === "smogon-uu") {
-        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles UU (Underused, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU y Ubers).";
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles UU (Underused, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
+      } else if (options.format === "smogon-ru") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles RU (Rarely Used, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU, UU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
+      } else if (options.format === "smogon-nu") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles NU (Never Used, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU, UU, RU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
+      } else if (options.format === "smogon-pu") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles PU (Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU, UU, RU, NU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
+      } else if (options.format === "smogon-lc") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Little Cup (Generation 9). Todos los Pokémon del equipo deben ser obligatoriamente de primera etapa evolutiva aptos para el formato (ej. Gligar, Foongus, Mienfoo, Pawniard, Tinkatink, etc.) y estar en su forma básica no evolucionada. Como regla especial de Little Cup, todos los Pokémon deben ser exactamente de Nivel 5 (debes establecer 'level: 5' para todos los miembros). Es crítico equipar 'Eviolite' (Mineral Evolutivo) o 'Berry Juice' (Zumo de Baya) en tus Pokémon.";
       } else if (options.format === "smogon-doubles-ou") {
         constraintsPrompt += "Debes diseñar el equipo para Smogon Doubles OU (Generation 9). Formato de dobles competitivo de Smogon con su propia lista de prohibiciones.";
       }
