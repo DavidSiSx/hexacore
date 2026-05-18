@@ -1,4 +1,5 @@
-import { createBrowserClient, type SupabaseClient } from "@supabase/ssr";
+import { createBrowserClient } from "@supabase/ssr";
+import { type SupabaseClient } from "@supabase/supabase-js";
 
 // Cliente de Supabase seguro para el navegador (Client Components)
 // Se sincroniza automáticamente con la persistencia en cookies de la sesión

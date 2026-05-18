@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { LangToggle } from "@/app/components/Shared/LangToggle";
 import { useTheme, THEMES_LIST } from "@/app/components/Shared/ThemeProvider";
-import type { User } from "@supabase/supabase-js";
+import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { Menu, X, LogOut, LogIn, Palette, Zap } from "lucide-react";
 
 export default function Navbar({ lang, dict }: { lang: string; dict: Record<string, unknown> }) {
@@ -22,8 +22,8 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
     const supabase = getSupabaseClient();
     if (!supabase) return;
     
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getUser().then((res) => setUser(res.data.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user ?? null);
     });
     return () => listener.subscription.unsubscribe();
