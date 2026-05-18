@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { LangToggle } from "@/app/components/Shared/LangToggle";
 import { useTheme, THEMES_LIST } from "@/app/components/Shared/ThemeProvider";
 import type { User } from "@supabase/supabase-js";
@@ -19,6 +19,9 @@ export default function Navbar({ lang, dict }: { lang: string; dict: any }) {
 
   useEffect(() => {
     setMounted(true);
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -27,6 +30,9 @@ export default function Navbar({ lang, dict }: { lang: string; dict: any }) {
   }, []);
 
   async function handleLogout() {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    
     await supabase.auth.signOut();
     setUser(null);
     window.location.href = `/${lang}`;

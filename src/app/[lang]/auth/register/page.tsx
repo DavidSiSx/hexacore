@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { UserPlus, Mail, Lock, User, AlertTriangle, CheckCircle } from "lucide-react";
@@ -26,6 +26,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setError(isEs ? "Error de conexión. Intenta más tarde." : "Connection error. Try again later.");
+      setLoading(false);
+      return;
+    }
 
     const { error: authError } = await supabase.auth.signUp({
       email,
