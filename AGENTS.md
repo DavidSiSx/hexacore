@@ -27,7 +27,14 @@
 ## 5. Manejo de Errores y Estado
 
 - Exigir bloques `try/catch` o un manejo equivalente en todas las operaciones asíncronas o llamadas a APIs externas.
-- Sugerir el uso de estados de carga (`isLoading`) y manejo de estados de error visibles para la interfaz de usuario en las peticiones de red.`<!-- BEGIN:nextjs-agent-rules -->
+- Sugerir el uso de estados de carga (`isLoading`) y manejo de estados de error visibles para la interfaz de usuario en las peticiones de red.
+
+## 6. Integridad de Datos en la UI (Pokémon/Objetos/Movimientos/Habilidades)
+
+- **Cero Entrada Libre (No Free-Text Fields)**: NUNCA dejes al usuario escribir texto libre para seleccionar nombres de Pokémon, objetos, movimientos o habilidades competitivas en la base de datos o en la definición de reglas.
+- **Validación por Lista Controlada**: Cualquier campo de metajuego debe utilizar autocompletado en tiempo real consumiendo las Server Actions de la enciclopedia (`searchPokemonSpecies`, `searchItems`, `searchMoves`, `searchAbilities`) para evitar errores tipográficos y asegurar que sólo valores existentes y legales puedan ser seleccionados.
+
+<!-- BEGIN:nextjs-agent-rules -->
 
 
   `

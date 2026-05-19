@@ -13,6 +13,9 @@ import {
   saveCustomFormatAction, 
   deleteCustomFormatAction 
 } from "@/app/actions/format";
+import { searchPokemonSpecies } from "@/app/actions/pokedex";
+import { searchMoves, searchAbilities, searchItems } from "@/app/actions/encyclopedia";
+import AutocompleteMultiSelect from "@/app/components/AutocompleteMultiSelect";
 import { 
   Loader2, Sparkles, AlertTriangle, ShieldCheck, 
   Upload, Download, X, Copy, Check, SlidersHorizontal, Globe,
@@ -379,20 +382,22 @@ export default function TeamBuilder() {
   const [allowTera, setAllowTera] = useState(true);
   const [minLevel, setMinLevel] = useState(1);
   const [maxLevel, setMaxLevel] = useState(100);
-  const [banPokemon, setBanPokemon] = useState("");
-  const [banItems, setBanItems] = useState("");
-  const [banMoves, setBanMoves] = useState("");
-  const [banAbilities, setBanAbilities] = useState("");
+  const [banPokemon, setBanPokemon] = useState<string[]>([]);
+  const [banItems, setBanItems] = useState<string[]>([]);
+  const [banMoves, setBanMoves] = useState<string[]>([]);
+  const [banAbilities, setBanAbilities] = useState<string[]>([]);
 
   // Cada vez que cambia el equipo o el formato seleccionado, recalculamos la validación
   useEffect(() => {
     if (team && team.members) {
-      const report = validateTeam(team.members, format || team.format || undefined);
+      const activeFormatId = format || team.format;
+      const customRules = customFormats.find(f => f.id === activeFormatId);
+      const report = validateTeam(team.members, activeFormatId || undefined, customRules);
       setValidation(report);
     } else {
       setValidation(null);
     }
-  }, [team, format]);
+  }, [team, format, customFormats]);
 
   // Cargar formatos personalizados al iniciar
   useEffect(() => {
@@ -423,10 +428,10 @@ export default function TeamBuilder() {
         minLevel,
         maxLevel,
         bans: {
-          pokemon: banPokemon.split(",").map(x => x.trim()).filter(Boolean),
-          items: banItems.split(",").map(x => x.trim()).filter(Boolean),
-          moves: banMoves.split(",").map(x => x.trim()).filter(Boolean),
-          abilities: banAbilities.split(",").map(x => x.trim()).filter(Boolean),
+          pokemon: banPokemon,
+          items: banItems,
+          moves: banMoves,
+          abilities: banAbilities,
         }
       };
 
@@ -442,6 +447,7 @@ export default function TeamBuilder() {
           setCustomFormats(prev => prev.map(f => f.id === customFormatId ? res.format : f));
         } else {
           setCustomFormats(prev => [res.format, ...prev]);
+          setFormat(res.format.id);
         }
         setShowCustomModal(false);
         resetCustomFormatForm();
@@ -483,10 +489,10 @@ export default function TeamBuilder() {
     setAllowTera(rules.allowTera ?? true);
     setMinLevel(rules.minLevel ?? 1);
     setMaxLevel(rules.maxLevel ?? 100);
-    setBanPokemon(rules.bans?.pokemon?.join(", ") ?? "");
-    setBanItems(rules.bans?.items?.join(", ") ?? "");
-    setBanMoves(rules.bans?.moves?.join(", ") ?? "");
-    setBanAbilities(rules.bans?.abilities?.join(", ") ?? "");
+    setBanPokemon(rules.bans?.pokemon ?? []);
+    setBanItems(rules.bans?.items ?? []);
+    setBanMoves(rules.bans?.moves ?? []);
+    setBanAbilities(rules.bans?.abilities ?? []);
     
     setShowCustomModal(true);
   }
@@ -502,10 +508,10 @@ export default function TeamBuilder() {
     setAllowTera(true);
     setMinLevel(1);
     setMaxLevel(100);
-    setBanPokemon("");
-    setBanItems("");
-    setBanMoves("");
-    setBanAbilities("");
+    setBanPokemon([]);
+    setBanItems([]);
+    setBanMoves([]);
+    setBanAbilities([]);
   }
 
   // ============================================
@@ -1709,58 +1715,66 @@ export default function TeamBuilder() {
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)] border-b border-zinc-800 pb-1">
                   {t.bansLabel}
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                      {t.banPokemonLabel}
-                    </label>
-                    <textarea
-                      value={banPokemon}
-                      onChange={(e) => setBanPokemon(e.target.value)}
-                      placeholder="Calyrex-Shadow, Zacian-Crowned..."
-                      rows={2}
-                      className="bg-black border-2 border-zinc-800 p-2 text-xs font-semibold text-zinc-100 placeholder:text-zinc-850 focus:outline-none focus:border-[var(--border)] resize-none"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <AutocompleteMultiSelect
+                    label={t.banPokemonLabel}
+                    placeholder="e.g. Calyrex-Shadow, Zacian..."
+                    selected={banPokemon}
+                    onChange={setBanPokemon}
+                    onSearch={searchPokemonSpecies}
+                    themeColor="bg-amber-400"
+                    t={{
+                      noResults: locale === "es" ? "No se encontraron Pokémon" : "No Pokémon found",
+                      loading: locale === "es" ? "Buscando Pokémon..." : "Searching Pokémon...",
+                      add: locale === "es" ? "Agregar" : "Add",
+                      alreadySelected: locale === "es" ? "Baneado" : "Banned"
+                    }}
+                  />
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                      {t.banItemsLabel}
-                    </label>
-                    <textarea
-                      value={banItems}
-                      onChange={(e) => setBanItems(e.target.value)}
-                      placeholder="Gengarite, King's Rock..."
-                      rows={2}
-                      className="bg-black border-2 border-zinc-800 p-2 text-xs font-semibold text-zinc-100 placeholder:text-zinc-850 focus:outline-none focus:border-[var(--border)] resize-none"
-                    />
-                  </div>
+                  <AutocompleteMultiSelect
+                    label={t.banItemsLabel}
+                    placeholder="e.g. Gengarite, Light Clay..."
+                    selected={banItems}
+                    onChange={setBanItems}
+                    onSearch={searchItems}
+                    themeColor="bg-rose-400"
+                    t={{
+                      noResults: locale === "es" ? "No se encontraron objetos" : "No items found",
+                      loading: locale === "es" ? "Buscando objetos..." : "Searching items...",
+                      add: locale === "es" ? "Agregar" : "Add",
+                      alreadySelected: locale === "es" ? "Baneado" : "Banned"
+                    }}
+                  />
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                      {t.banMovesLabel}
-                    </label>
-                    <textarea
-                      value={banMoves}
-                      onChange={(e) => setBanMoves(e.target.value)}
-                      placeholder="Double Iron Bash, Last Respects..."
-                      rows={2}
-                      className="bg-black border-2 border-zinc-800 p-2 text-xs font-semibold text-zinc-100 placeholder:text-zinc-850 focus:outline-none focus:border-[var(--border)] resize-none"
-                    />
-                  </div>
+                  <AutocompleteMultiSelect
+                    label={t.banMovesLabel}
+                    placeholder="e.g. Last Respects, Revival Blessing..."
+                    selected={banMoves}
+                    onChange={setBanMoves}
+                    onSearch={searchMoves}
+                    themeColor="bg-sky-400"
+                    t={{
+                      noResults: locale === "es" ? "No se encontraron movimientos" : "No moves found",
+                      loading: locale === "es" ? "Buscando movimientos..." : "Searching moves...",
+                      add: locale === "es" ? "Agregar" : "Add",
+                      alreadySelected: locale === "es" ? "Baneado" : "Banned"
+                    }}
+                  />
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                      {t.banAbilitiesLabel}
-                    </label>
-                    <textarea
-                      value={banAbilities}
-                      onChange={(e) => setBanAbilities(e.target.value)}
-                      placeholder="Moody, Arena Trap..."
-                      rows={2}
-                      className="bg-black border-2 border-zinc-800 p-2 text-xs font-semibold text-zinc-100 placeholder:text-zinc-850 focus:outline-none focus:border-[var(--border)] resize-none"
-                    />
-                  </div>
+                  <AutocompleteMultiSelect
+                    label={t.banAbilitiesLabel}
+                    placeholder="e.g. Moody, Arena Trap..."
+                    selected={banAbilities}
+                    onChange={setBanAbilities}
+                    onSearch={searchAbilities}
+                    themeColor="bg-purple-400"
+                    t={{
+                      noResults: locale === "es" ? "No se encontraron habilidades" : "No abilities found",
+                      loading: locale === "es" ? "Buscando habilidades..." : "Searching abilities...",
+                      add: locale === "es" ? "Agregar" : "Add",
+                      alreadySelected: locale === "es" ? "Baneado" : "Banned"
+                    }}
+                  />
                 </div>
               </div>
             </div>

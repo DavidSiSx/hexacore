@@ -874,7 +874,7 @@ export function validateTeam(
 
   // 3. Megas & Z-Crystals Clause (National Dex / Mix and Mega)
   if (isNatDex || isMixAndMega) {
-    const megaStones = itemsList.filter(item => item.endsWith("ite") || item.includes("ite ") || item === "red orb" || item === "blue orb" || item === "redorb" || item === "blueorb");
+    const megaStones = itemsList.filter(item => (item.endsWith("ite") && item.toLowerCase() !== "eviolite") || item.includes("ite ") || item === "red orb" || item === "blue orb" || item === "redorb" || item === "blueorb");
     const zCrystals = itemsList.filter(item => item.endsWith("ium z") || item.endsWith("ium-z"));
     
     if (megaStones.length > 1) {
@@ -911,18 +911,9 @@ export function validateTeam(
       }
 
       // Check level (defaults to 5 in LC if undefined)
-      const level = (m as any).level !== undefined ? (m as any).level : (isCustom ? 50 : 5);
-      if (isCustom) {
-        if (level > (rules?.maxLevel ?? 100)) {
-          errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, superando el límite máximo de Nivel ${rules?.maxLevel ?? 100}.`);
-        }
-        if (level < (rules?.minLevel ?? 1)) {
-          errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, por debajo del límite mínimo de Nivel ${rules?.minLevel ?? 1}.`);
-        }
-      } else if (isLittleCup) {
-        if (level > 5) {
-          errors.push(`Violación de Little Cup: ${name} tiene un nivel de ${level}, superando el límite de Nivel 5 del formato.`);
-        }
+      const level = (m as any).level !== undefined ? (m as any).level : 5;
+      if (!isCustom && level > 5) {
+        errors.push(`Violación de Little Cup: ${name} tiene un nivel de ${level}, superando el límite de Nivel 5 del formato.`);
       }
 
       const itemLower = m.item.toLowerCase();
@@ -1086,7 +1077,7 @@ export function validateTeam(
     if (isCustom) {
       // 1. Megas, Cristales Z, Teracristalización prohibidos
       if (!rules?.allowMega) {
-        const isMegaStone = itemLower.endsWith("ite") || itemLower.includes("ite ") || itemLower === "red orb" || itemLower === "blue orb" || itemLower === "redorb" || itemLower === "blueorb";
+        const isMegaStone = (itemLower.endsWith("ite") && itemLower !== "eviolite") || itemLower.includes("ite ") || itemLower === "red orb" || itemLower === "blue orb" || itemLower === "redorb" || itemLower === "blueorb";
         if (isMegaStone) {
           errors.push(`Violación de Formato Personalizado: Las Mega Evoluciones están prohibidas, pero ${name} lleva una Mega Piedra u Orbe Primigenio.`);
         }
@@ -1098,10 +1089,20 @@ export function validateTeam(
         }
       }
       if (!rules?.allowTera && m.teraType && m.teraType.toLowerCase() !== "none" && m.teraType.toLowerCase() !== "") {
-        errors.push(`Violación de Formato Personalizado: La Teracristalización está prohibida en este formato personalizado, pero ${name} tiene un Teratipo asignado (${m.teraType}).`);
+        warnings.push(`Advertencia de Formato Personalizado: La Teracristalización está prohibida en este formato, por lo que el Teratipo de ${name} (${m.teraType}) será ignorado.`);
       }
 
-      // 2. Custom bans
+      // 2. Level limits check
+      const defaultLevel = isLittleCup ? 5 : 50;
+      const level = (m as any).level !== undefined ? (m as any).level : defaultLevel;
+      if (level > (rules?.maxLevel ?? 100)) {
+        errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, superando el límite máximo de Nivel ${rules?.maxLevel ?? 100}.`);
+      }
+      if (level < (rules?.minLevel ?? 1)) {
+        errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, por debajo del límite mínimo de Nivel ${rules?.minLevel ?? 1}.`);
+      }
+
+      // 3. Custom bans
       if (rules?.bans?.pokemon && rules.bans.pokemon.some((p: string) => p.toLowerCase().trim() === lookupName || p.toLowerCase().trim() === m.species.trim().toLowerCase())) {
         errors.push(`Violación de Formato Personalizado: ${name} está explícitamente prohibido en este formato personalizado.`);
       }
@@ -1157,22 +1158,48 @@ export function validateTeam(
     // A. Nivel 1: Assault Vest + Status moves (Ilegalidad binaria)
     if (itemLower === "assault vest" || itemLower === "chaleco asalto") {
       const statusMoves = [
-        "protect", "detect", "swords dance", "nasty plot", "will-o-wisp", "spore", "thunder wave", 
+        "protect", "detect", "swords dance", "nasty plot", "will-o-wisp", "will o wisp", "spore", "thunder wave", 
         "defog", "tailwind", "trick room", "substitute", "calm mind", "recover", "roost", "toxic", 
         "stealth rock", "spikes", "sticky web", "helping hand", "follow me", "rage powder", "yawn",
+        "taunt", "parting shot", "ultima palabra", "última palabra", "roar", "rugido", "haze", "niebla",
+        "encore", "otra vez", "disable", "anulacion", "anulación", "destiny bond", "mismo destino",
+        "light screen", "pantalla luz", "pantalla de luz", "reflect", "reflejo", "aurora veil", "velo aurora",
+        "safeguard", "velo sagrado", "ally switch", "cambio de banda", "wide guard", "vasta guardia",
+        "quick guard", "anticipo", "coaching", "entrenamiento", "heal pulse", "pulso cura", "trick", "truco",
+        "switcheroo", "trapicheo", "teleport", "teletransporte", "wish", "deseo", "baton pass", "relevo",
+        "healing wish", "deseo cura", "lunar dance", "danza lunar", "sunny day", "dia soleado", "día soleado",
+        "rain dance", "danza lluvia", "sandstorm", "tormenta arena", "snowscape", "paisaje nevado",
+        "chilly reception", "fria acogida", "fría acogida", "sleep powder", "somnifero", "somnífero",
+        "stun spore", "paralizador", "glare", "mirada mala", "whirlwind", "remolino", "toxic spikes", 
+        "puas toxicas", "púas tóxicas", "quiver dance", "danza aleteo", "dragon dance", "danza dragon", 
+        "danza dragón", "bulk up", "corpulencia", "iron defense", "defensa ferrea", "defensa férrea", 
+        "cosmic power", "masa cosmica", "masa cósmica", "double team", "doble equipo", "minimize", 
+        "reduccion", "reducción", "spiky shield", "escudo espinoso", "baneful bunker", "barrera nociva", 
+        "silk trap", "red de seda", "burning bulwark", "escudo ardiente", "barrera ardiente", 
+        "king's shield", "escudo real", "obstruct", "obstruccion", "obstrucción", "spite", "rancor", 
+        "despecho", "grudge", "rabia", "curse", "maldicion", "maldición", "painsplit", "divide dolor", "pain split",
         "proteccion", "deteccion", "danza espada", "maquinacion", "fuego fatuo", "espora", "onda trueno",
         "despejar", "viento afin", "espacio raro", "sustituto", "paz mental", "recuperacion", "respiro",
         "toxico", "trampa rocas", "púas", "red viscosa", "refuerzo", "señuelo", "polvo ira", "bostezo"
       ];
       const matchingStatus = moves.filter(mv => statusMoves.includes(mv));
       if (matchingStatus.length > 0) {
-        errors.push(`Violación Crítica (Chaleco Asalto): ${name} lleva Assault Vest equipado, pero tiene movimientos de estado activos: [${matchingStatus.join(", ")}]. Esto hará inhabitable su uso en batalla.`);
+        warnings.push(`Advertencia Mecánica (Chaleco Asalto): ${name} lleva Assault Vest equipado, pero tiene movimientos de estado activos: [${matchingStatus.join(", ")}]. No podrás usar estos movimientos en batalla.`);
       }
     }
 
     // B. Nivel 2: Choice Item + Protect (Choice Lock syndrome)
     if (itemLower.includes("choice") || itemLower.includes("eleccion")) {
-      const lockStatusMoves = ["protect", "detect", "spiky shield", "baneful bunker", "silk trap", "burning bulwark", "swords dance", "nasty plot", "proteccion", "deteccion", "danza espada", "maquinacion"];
+      const lockStatusMoves = [
+        "protect", "detect", "spiky shield", "baneful bunker", "silk trap", "burning bulwark", 
+        "swords dance", "nasty plot", "dragon dance", "quiver dance", "calm mind", "bulk up", 
+        "iron defense", "agility", "rock polish", "shell smash", "geomancy",
+        "proteccion", "deteccion", "danza espada", "maquinacion", "danza dragon", "danza dragón", 
+        "danza aleteo", "paz mental", "corpulencia", "defensa ferrea", "defensa férrea", "agilidad", 
+        "pulido", "rompecoraza", "geocontrol", "escudo espinoso", "barrera nociva", "red de seda", 
+        "escudo ardiente", "barrera ardiente", "king's shield", "escudo real", "obstruct", 
+        "obstruccion", "obstrucción"
+      ];
       const matchingLock = moves.filter(mv => lockStatusMoves.includes(mv));
       if (matchingLock.length > 0) {
         warnings.push(`Advertencia Mecánica (Choque de Elección): ${name} lleva un objeto de elección (${m.item}) con movimientos de protección o boost: [${matchingLock.join(", ")}]. Quedarás atrapado en Protect si lo usas.`);
