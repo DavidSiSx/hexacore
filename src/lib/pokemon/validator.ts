@@ -6,7 +6,17 @@ export interface ValidationReport {
   errors: string[];       // Nivel 1: Ilegalidades Críticas
   warnings: string[];     // Nivel 2: Anti-Sinergias Mecánicas
   suggestions: string[];  // Nivel 3: Vulnerabilidades Estructurales
+  stats?: {
+    weathers: string[];
+    terrains: string[];
+    hasSpeedControl: boolean;
+    hasHazardControl: boolean;
+    protectCount: number;
+    immunities: string[];
+    weaknesses: string[];
+  };
 }
+
 
 // Mapeo de estadísticas base de las especies del metagame
 export const SPECIES_BASE_STATS: Record<string, { HP: number; Atk: number; Def: number; SpA: number; SpD: number; Spe: number }> = {
@@ -574,6 +584,76 @@ const MYTHICAL_POKEMON = new Set([
   "marshadow", "zeraora", "meltan", "melmetal", "zarude", "pecharunt"
 ]);
 
+// Regulación estricta de National Dex (Smogon)
+const NATDEX_OU_BANS = {
+  species: new Set([
+    "calyrex", "calyrex-ice", "calyrex-shadow", "chi-yu", "chien-pao", "deoxys", "deoxys-attack",
+    "dialga", "dialga-origin", "eternatus", "flutter-mane", "giratina", "giratina-origin",
+    "groudon", "ho-oh", "koraidon", "miraidon", "terapagos", "palafin", "shedinja", "spectrier", "urshifu",
+    "calyrexshadow", "calyrexice", "chiyu", "chienpao", "deoxysattack", "dialgaorigin", "fluttermane",
+    "giratinaorigin", "kyuremblack", "kyuremwhite", "landorus", "necrozmadm", "necrozmadw",
+    "palkiaorigin", "urshifubase", "zaciancrowned", "zamazentabase", "urshifurapidstrike",
+    "urshifusinglestrike", "magearna"
+  ]),
+  items: new Set([
+    "gengarite", "mawilite", "salamencite", "metagrossite", "king's rock", "kings rock", "razor fang", "razorfang"
+  ]),
+  abilities: new Set([
+    "shadow tag", "shadowtag", "arena trap", "arenatrap", "moody"
+  ]),
+  moves: new Set([
+    "assist", "shed tail", "shedtail"
+  ])
+};
+
+// Regulación de National Dex Doubles (Smogon)
+const NATDEX_DOUBLES_BANS = {
+  species: new Set([
+    "arceus", "calyrex-ice", "calyrex-shadow", "dialga", "eternatus", "genesect", "giratina", "giratina-origin",
+    "groudon", "ho-oh", "koraidon", "kyogre", "kyurem-white", "lugia", "lunala", "magearna", "melmetal", "mewtwo",
+    "miraidon", "necrozma-dawn-wings", "necrozma-dusk-mane", "palkia", "rayquaza", "reshiram", "solgaleo", "xerneas",
+    "yveltal", "zacian", "zacian-crowned", "zamazenta-crowned", "zekrom", "zygarde",
+    "calyrexice", "calyrexshadow", "giratinaorigin", "kyuremwhite", "necrozmadawnwings", "necrozmaduskmane",
+    "zaciancrowned", "zamazentacrowned", "annihilape", "deoxys-attack", "deoxysattack", "metagross-mega",
+    "metagrossmeg", "shedinja", "stakataka", "urshifu", "urshifu-rapid-strike", "urshifu-single-strike",
+    "urshifurapidstrike", "urshifusinglestrike"
+  ]),
+  abilities: new Set([
+    "commander", "power construct", "powerconstruct", "sand veil", "sandveil", "snow cloak", "snowcloak", "shadow tag", "shadowtag"
+  ]),
+  moves: new Set([
+    "fissure", "guillotine", "horn drill", "sheer cold", "double team", "minimize", "assist", "coaching", "dark void", "swagger",
+    "fisura", "guillotina", "perforador", "frio polar", "doble equipo", "reduccion", "refuerzo", "coaching", "brecha negra", "contoneo"
+  ]),
+  items: new Set([])
+};
+
+// Especies dominantes de National Dex OU para regular en UU
+const NATDEX_OU_SPECIES = new Set([
+  "greattusk", "gholdengo", "kingambit", "dragapult", "rillaboom", "landorustherian", "darkrai",
+  "garganacl", "gliscor", "ironvaliant", "samurotthisui", "sneasler", "volcarona", "zamazenta",
+  "roaringmoon", "garchomp", "heatran", "corviknight", "clodsire", "alomomola", "kyurem",
+  "toxapex", "hatterene", "meowscarada", "zapdos", "glimmora", "weavile", "serperior", "cinderace",
+  "torkoal", "venusaur", "excadrill", "latios", "latias", "alakazam", "charizard", "scizor",
+  "slowkinggalar", "kartana", "lopunny", "medicham", "mawile", "diancie", "banette", "absol",
+  "pinsir", "gengar", "aerodactyl", "beedrill",
+  "great-tusk", "landorus-therian", "samurott-hisui", "roaring-moon", "slowking-galar", "venusaur-mega",
+  "charizard-mega-x", "charizard-mega-y", "scizor-mega", "lopunny-mega", "medicham-mega", "mawile-mega",
+  "diancie-mega", "banette-mega", "absol-mega", "pinsir-mega", "gengar-mega", "aerodactyl-mega", "beedrill-mega"
+]);
+
+// Especies dominantes de National Dex UU para regular en RU
+const NATDEX_UU_SPECIES = new Set([
+  "aegislash", "skeledirge", "hydrapple", "kleavor", "moltres", "moltresgalar",
+  "tinkaton", "ursaluna", "tornadustherian", "zapdosgalar", "cresselia", "enamorustherian",
+  "hippowdon", "krookodile", "lokix", "maushold", "mamoswine", "ogerpon", "rotomwash",
+  "sinistcha", "sandyshocks", "regieleki", "gyarados", "sableye", "salamence", "altaria",
+  "gallade", "gardevoir", "sharpedo", "camerupt", "glalie", "steelix", "pidgeot", "audino",
+  "moltres-galar", "tornadus-therian", "zapdos-galar", "enamorus-therian", "rotom-wash",
+  "sableye-mega", "salamence-mega", "altaria-mega", "gallade-mega", "gardevoir-mega",
+  "sharpedo-mega", "camerupt-mega", "glalie-mega", "steelix-mega", "pidgeot-mega", "audino-mega"
+]);
+
 // Normalizar nombres de Pokémon (reemplaza espacios por guiones para la DB)
 export function getSpeciesData(species: string): { types: string[]; isEvolved: boolean } {
   const normalized = species.trim().replace(/\s+/g, "-");
@@ -644,12 +724,29 @@ export function getSpeciesBaseStats(species: string): { HP: number; Atk: number;
   return { HP: 80, Atk: 80, Def: 80, SpA: 80, SpD: 80, Spe: 80 };
 }
 
-export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2025regb"): ValidationReport {
+export function validateTeam(
+  members: PokemonBuild[],
+  format: string = "gen9vgc2025regb",
+  customRules?: any
+): ValidationReport {
   const errors: string[] = [];
   const warnings: string[] = [];
   const suggestions: string[] = [];
 
   const fmt = format.toLowerCase();
+
+  // Cargar reglas customizadas si aplica
+  const isCustom = fmt.startsWith("custom") || !!customRules;
+  const rules = isCustom ? {
+    speciesClause: customRules?.speciesClause ?? customRules?.reglas?.speciesClause ?? true,
+    itemClause: customRules?.itemClause ?? customRules?.reglas?.itemClause ?? false,
+    allowMega: customRules?.allowMega ?? customRules?.reglas?.allowMega ?? true,
+    allowZMove: customRules?.allowZMove ?? customRules?.reglas?.allowZMove ?? true,
+    allowTera: customRules?.allowTera ?? customRules?.reglas?.allowTera ?? true,
+    maxLevel: customRules?.maxLevel ?? customRules?.reglas?.maxLevel ?? 100,
+    minLevel: customRules?.minLevel ?? customRules?.reglas?.minLevel ?? 1,
+    bans: customRules?.bans ?? customRules?.reglas?.bans ?? { pokemon: [], items: [], moves: [], abilities: [] },
+  } : null;
 
   // 0. Caso especial: Anything Goes (NatDex AG o similar) - APAGAR TODOS LOS FILTROS EXCEPTO LOS BÁSICOS
   const isAnythingGoes = fmt.includes("ag") || fmt.includes("anythinggoes");
@@ -666,7 +763,14 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
   const itemsList = members.map(m => m.item.trim().toLowerCase()).filter(Boolean);
 
   // 1. Species Clause (Desactivado en AG)
-  if (!isAnythingGoes) {
+  if (isCustom) {
+    if (rules?.speciesClause) {
+      const uniqueSpecies = new Set(speciesList);
+      if (uniqueSpecies.size < speciesList.length) {
+        errors.push("Violación de Species Clause: No puedes tener Pokémon duplicados de la misma especie en este formato.");
+      }
+    }
+  } else if (!isAnythingGoes) {
     const uniqueSpecies = new Set(speciesList);
     if (uniqueSpecies.size < speciesList.length) {
       errors.push("Violación de Species Clause: No puedes tener Pokémon duplicados de la misma especie en este formato.");
@@ -675,7 +779,7 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
 
   // 2. Item Clause (Activado solo en formatos oficiales VGC, 2v2 y 1v1; desactivado en OU, UU, RU, NU, PU, Ubers)
   const isVgcOrDoubles = fmt.includes("vgc") || fmt.includes("doubles") || fmt.includes("2v2") || fmt.includes("regulation") || fmt.includes("championship") || fmt.includes("reg");
-  const isSmogonClassicalSingles = (fmt.includes("ou") || fmt.includes("uu") || fmt.includes("ru") || fmt.includes("nu") || fmt.includes("pu")) && !fmt.includes("doubles");
+  const isSmogonClassicalSingles = (fmt.includes("ou") || fmt.includes("uu") || fmt.includes("ru") || fmt.includes("nu") || fmt.includes("pu") || fmt.includes("nationaldex") || fmt.includes("natdex")) && !fmt.includes("doubles");
   const isLittleCup = fmt.includes("lc") || fmt.includes("littlecup");
   const isSmogonTiers = isSmogonClassicalSingles || fmt.includes("ubers") || isLittleCup;
   const is1v1 = fmt.includes("1v1");
@@ -691,6 +795,8 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
   let allowSubLegendaries = true;
   let allowTreasuresOfRuin = true;
   let allowMythicals = true;
+
+  const isNatDex = fmt.includes("natdex") || fmt.includes("nationaldex");
 
   if (fmt === "regulation-h") {
     maxRestricted = 0;
@@ -719,12 +825,18 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
   } else if (fmt === "championship-series" || fmt.includes("reg")) {
     maxRestricted = 1;
     allowMythicals = false;
-  } else if (isSmogonClassicalSingles || fmt.includes("smogon-doubles-ou")) {
-    maxRestricted = 0;
-    allowMythicals = false;
   } else if (fmt.includes("ubers")) {
     maxRestricted = 999;
     allowMythicals = true;
+  } else if (isSmogonClassicalSingles || fmt.includes("smogon-doubles-ou")) {
+    const isUbersNatDex = fmt.includes("ubers") && isNatDex;
+    if (isUbersNatDex) {
+      maxRestricted = 999;
+      allowMythicals = true;
+    } else {
+      maxRestricted = 0;
+      allowMythicals = isNatDex ? true : false;
+    }
   } else if (isLittleCup) {
     maxRestricted = 0;
     allowParadox = false;
@@ -733,12 +845,26 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
     allowMythicals = false;
   }
 
+  // Reglas estructurales de Monotipo
+  if (isMonotype) {
+    maxRestricted = 0;
+    allowMythicals = isNatDex ? true : false;
+  }
+
   let restrictedCount = 0;
   
   // Smogon Doubles OU no tiene Item Clause, pero VGC, 1v1 y Mix & Mega sí
-  const enforceItemClause = (isVgcOrDoubles && !fmt.includes("doublesou") && !fmt.includes("doubles-ou")) || is1v1 || isMixAndMega;
+  const enforceItemClause = (isVgcOrDoubles && !fmt.includes("doublesou") && !fmt.includes("doubles-ou") && !fmt.includes("doubles")) || is1v1 || isMixAndMega;
 
-  if (enforceItemClause && !isAnythingGoes) {
+  if (isCustom) {
+    if (rules?.itemClause) {
+      const activeItems = itemsList.filter(item => item !== "none" && item !== "no item" && item !== "");
+      const uniqueItems = new Set(activeItems);
+      if (uniqueItems.size < activeItems.length) {
+        errors.push("Violación de Item Clause: Este formato prohíbe equipar el mismo objeto en múltiples Pokémon del equipo.");
+      }
+    }
+  } else if (enforceItemClause && !isAnythingGoes) {
     const activeItems = itemsList.filter(item => item !== "none" && item !== "no item" && item !== "");
     const uniqueItems = new Set(activeItems);
     if (uniqueItems.size < activeItems.length) {
@@ -747,7 +873,6 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
   }
 
   // 3. Megas & Z-Crystals Clause (National Dex / Mix and Mega)
-  const isNatDex = fmt.includes("natdex") || fmt.includes("nationaldex");
   if (isNatDex || isMixAndMega) {
     const megaStones = itemsList.filter(item => item.endsWith("ite") || item.includes("ite ") || item === "red orb" || item === "blue orb" || item === "redorb" || item === "blueorb");
     const zCrystals = itemsList.filter(item => item.endsWith("ium z") || item.endsWith("ium-z"));
@@ -786,9 +911,18 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
       }
 
       // Check level (defaults to 5 in LC if undefined)
-      const level = (m as any).level !== undefined ? (m as any).level : 5;
-      if (level > 5) {
-        errors.push(`Violación de Little Cup: ${name} tiene un nivel de ${level}, superando el límite de Nivel 5 del formato.`);
+      const level = (m as any).level !== undefined ? (m as any).level : (isCustom ? 50 : 5);
+      if (isCustom) {
+        if (level > (rules?.maxLevel ?? 100)) {
+          errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, superando el límite máximo de Nivel ${rules?.maxLevel ?? 100}.`);
+        }
+        if (level < (rules?.minLevel ?? 1)) {
+          errors.push(`Violación de Formato Personalizado: ${name} tiene un nivel de ${level}, por debajo del límite mínimo de Nivel ${rules?.minLevel ?? 1}.`);
+        }
+      } else if (isLittleCup) {
+        if (level > 5) {
+          errors.push(`Violación de Little Cup: ${name} tiene un nivel de ${level}, superando el límite de Nivel 5 del formato.`);
+        }
       }
 
       const itemLower = m.item.toLowerCase();
@@ -888,6 +1022,100 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
     }
     if (MYTHICAL_POKEMON.has(lookupName) && !allowMythicals) {
       errors.push(`Ilegalidad de Regulación (${format.toUpperCase()}): ${name} es un Pokémon Singular/Mítico prohibido en este formato.`);
+    }
+
+    // Regulación detallada de tiers y cláusulas de National Dex (Smogon)
+    const isNatDexDoubles = fmt.includes("nationaldexdoubles") || fmt.includes("natdexdoubles") || fmt.includes("nationaldex-doubles") || fmt.includes("natdex-doubles");
+    if (isNatDex && !fmt.includes("ubers") && !fmt.includes("ag")) {
+      const itemLookup = m.item.trim().toLowerCase().replace(/[\s\-_]+/g, "");
+
+      if (isNatDexDoubles) {
+        if (NATDEX_DOUBLES_BANS.species.has(lookupName)) {
+          errors.push(`Ilegalidad de National Dex Doubles: ${name} está prohibido en este formato.`);
+        }
+        if (NATDEX_DOUBLES_BANS.abilities.has(abilityLower)) {
+          errors.push(`Ilegalidad de National Dex Doubles: La habilidad '${m.ability}' está prohibida en este formato.`);
+        }
+        moves.forEach(mv => {
+          if (NATDEX_DOUBLES_BANS.moves.has(mv)) {
+            errors.push(`Ilegalidad de National Dex Doubles: El movimiento '${mv}' está prohibido en este formato.`);
+          }
+        });
+      } else {
+        // Prohibir Megapiedras rotas u objetos prohibidos en OU/UU/RU
+        if (NATDEX_OU_BANS.items.has(itemLower) || NATDEX_OU_BANS.items.has(itemLookup)) {
+          errors.push(`Ilegalidad de National Dex: El objeto '${m.item}' está prohibido en este formato.`);
+        }
+        
+        // Prohibir habilidades rotas (Shadow Tag, Arena Trap, Moody)
+        if (NATDEX_OU_BANS.abilities.has(abilityLower)) {
+          errors.push(`Ilegalidad de National Dex: La habilidad '${m.ability}' está prohibida en este formato.`);
+        }
+        
+        // Prohibir movimientos rotos (Assist, Shed Tail)
+        moves.forEach(mv => {
+          if (NATDEX_OU_BANS.moves.has(mv)) {
+            errors.push(`Ilegalidad de National Dex: El movimiento '${mv}' está prohibido en este formato.`);
+          }
+        });
+
+        // Prohibir especies Uber/banned en NatDex
+        if (NATDEX_OU_BANS.species.has(lookupName)) {
+          errors.push(`Ilegalidad de National Dex: ${name} está prohibido en el formato estándar debido a su excesivo poder.`);
+        }
+
+        // Validaciones específicas de la tier National Dex UU
+        const isNatDexUU = fmt.includes("nationaldexuu") || fmt.includes("natdexuu") || fmt.includes("nationaldex-uu") || fmt.includes("natdex-uu");
+        if (isNatDexUU) {
+          if (NATDEX_OU_SPECIES.has(lookupName)) {
+            errors.push(`Violación de Tier National Dex UU: ${name} es un Pokémon dominante en la tier National Dex OU y está prohibido en UU.`);
+          }
+        }
+
+        // Validaciones específicas de la tier National Dex RU
+        const isNatDexRU = fmt.includes("nationaldexru") || fmt.includes("natdexru") || fmt.includes("nationaldex-ru") || fmt.includes("natdex-ru");
+        if (isNatDexRU) {
+          if (NATDEX_OU_SPECIES.has(lookupName) || NATDEX_UU_SPECIES.has(lookupName)) {
+            errors.push(`Violación de Tier National Dex RU: ${name} pertenece a una tier superior (OU/UU) y está prohibido en la tier RU.`);
+          }
+        }
+      }
+    }
+
+    // Regulación para formatos personalizados
+    if (isCustom) {
+      // 1. Megas, Cristales Z, Teracristalización prohibidos
+      if (!rules?.allowMega) {
+        const isMegaStone = itemLower.endsWith("ite") || itemLower.includes("ite ") || itemLower === "red orb" || itemLower === "blue orb" || itemLower === "redorb" || itemLower === "blueorb";
+        if (isMegaStone) {
+          errors.push(`Violación de Formato Personalizado: Las Mega Evoluciones están prohibidas, pero ${name} lleva una Mega Piedra u Orbe Primigenio.`);
+        }
+      }
+      if (!rules?.allowZMove) {
+        const isZCrystal = itemLower.endsWith("ium z") || itemLower.endsWith("ium-z");
+        if (isZCrystal) {
+          errors.push(`Violación de Formato Personalizado: Los Movimientos Z están prohibidos, pero ${name} lleva un Cristal Z.`);
+        }
+      }
+      if (!rules?.allowTera && m.teraType && m.teraType.toLowerCase() !== "none" && m.teraType.toLowerCase() !== "") {
+        errors.push(`Violación de Formato Personalizado: La Teracristalización está prohibida en este formato personalizado, pero ${name} tiene un Teratipo asignado (${m.teraType}).`);
+      }
+
+      // 2. Custom bans
+      if (rules?.bans?.pokemon && rules.bans.pokemon.some((p: string) => p.toLowerCase().trim() === lookupName || p.toLowerCase().trim() === m.species.trim().toLowerCase())) {
+        errors.push(`Violación de Formato Personalizado: ${name} está explícitamente prohibido en este formato personalizado.`);
+      }
+      if (rules?.bans?.items && rules.bans.items.some((i: string) => i.toLowerCase().trim() === itemLower)) {
+        errors.push(`Violación de Formato Personalizado: El objeto '${m.item}' está explícitamente prohibido en este formato personalizado.`);
+      }
+      if (rules?.bans?.abilities && rules.bans.abilities.some((a: string) => a.toLowerCase().trim() === abilityLower)) {
+        errors.push(`Violación de Formato Personalizado: La habilidad '${m.ability}' está explícitamente prohibida en este formato personalizado.`);
+      }
+      moves.forEach(mv => {
+        if (rules?.bans?.moves && rules.bans.moves.some((mvBan: string) => mvBan.toLowerCase().trim() === mv)) {
+          errors.push(`Violación de Formato Personalizado: El movimiento '${mv}' está explícitamente prohibido en este formato personalizado.`);
+        }
+      });
     }
 
     // Registro de climas y terrenos
@@ -1067,10 +1295,31 @@ export function validateTeam(members: PokemonBuild[], format: string = "gen9vgc2
     }
   }
 
+  // Extracción de debilidades e inmunidades para el Resumen Técnico
+  const weaknesses: string[] = [];
+  const immunities: string[] = [];
+  elementTypes.forEach((type) => {
+    const data = teamWeaknesses[type];
+    if (data) {
+      if (data.count >= 2) weaknesses.push(type);
+      if (data.immuneCount > 0) immunities.push(type);
+    }
+  });
+
   return {
     valid: errors.length === 0,
     errors,
     warnings,
     suggestions,
+    stats: {
+      weathers: Array.from(new Set(weathers)),
+      terrains: Array.from(new Set(terrains)),
+      hasSpeedControl,
+      hasHazardControl,
+      protectCount,
+      immunities,
+      weaknesses,
+    }
   };
+
 }

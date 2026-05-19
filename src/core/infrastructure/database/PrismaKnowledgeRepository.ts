@@ -22,9 +22,9 @@ function toSlug(name: string): string {
 }
 
 /**
- * Adaptador concreto para interactuar con PostgreSQL mediante Prisma Client.
+ * Adaptador concreto para interactuar con la base de datos (SQLite/PostgreSQL) mediante Prisma Client.
  * Implementa el patrón Repositorio garantizando el encapsulamiento de sentencias
- * SQL nativas y operaciones ORM transaccionales.
+ * SQL y operaciones ORM transaccionales.
  */
 export class PrismaKnowledgeRepository implements KnowledgeRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -163,16 +163,18 @@ export class PrismaKnowledgeRepository implements KnowledgeRepository {
     });
   }
 
-  /**
-   * Almacena un documento semántico inyectando el vector mediante SQL nativo seguro.
-   * Utiliza plantillas etiquetadas para prevenir vulnerabilidades de inyección.
-   */
   public async saveKnowledgeDocument(payload: KnowledgeDocumentPayload): Promise<void> {
     const vectorString = `[${payload.embeddingVector.join(',')}]`;
+    const metadataObj = payload.metadata as unknown as Prisma.InputJsonObject;
 
-    await this.prisma.$executeRaw`
-      INSERT INTO "DocumentoConocimiento" (doc_type, contenido, metadatos, embedding)
-      VALUES (${payload.docType}, ${payload.content}, ${JSON.stringify(payload.metadata)}::jsonb, ${vectorString}::vector)
-    `;
+    await this.prisma.documentoConocimiento.create({
+      data: {
+        id: undefined, // SQLite autogenerates the UUID or default value
+        doc_type: payload.docType,
+        contenido: payload.content,
+        metadatos: metadataObj,
+        embedding: vectorString
+      }
+    });
   }
 }

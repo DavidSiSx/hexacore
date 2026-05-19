@@ -56,7 +56,13 @@ export const TeamGenerationOptionsSchema = z.object({
   format: z.string().optional(),
   archetype: z.string().optional(),
   blacklistTypes: z.array(z.string()).optional(),
+  metaMode: z.enum(["ai_chooses", "meta", "optimized", "casual"]).optional().default("ai_chooses"),
+  lockedSlots: z.array(z.number()).optional().default([]),
+  currentTeam: z.array(PokemonBuildSchema).optional(),
+  refinementPrompt: z.string().optional(),
+  customRules: z.any().optional(),
 });
 
 export type TeamGenerationOptions = z.infer<typeof TeamGenerationOptionsSchema>;
+
 

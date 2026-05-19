@@ -1,18 +1,45 @@
 import { prisma } from "@/lib/db";
-import { pipeline } from "@xenova/transformers";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Mantener la instancia del modelo en memoria durante el tiempo de vida del servidor
-class EmbeddingPipeline {
-  static task = "feature-extraction";
-  static model = "Xenova/all-MiniLM-L6-v2";
-  static instance: any = null;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-  static async getInstance() {
-    if (this.instance === null) {
-      this.instance = await pipeline(this.task as any, this.model);
-    }
-    return this.instance;
+async function embedText(text: string): Promise<number[]> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY no está configurada.");
   }
+  const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+  const result = await model.embedContent(text);
+  return result.embedding.values;
+}
+
+/**
+ * Deserializa la cadena de texto del vector SQLite "[x1, x2, ...]" en un array de números.
+ */
+function parseVector(vecStr: string | null): number[] {
+  if (!vecStr) return [];
+  try {
+    const cleanStr = vecStr.replace(/[\[\]]/g, '');
+    return cleanStr.split(',').map(Number);
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Calcula de manera robusta la similitud del coseno entre dos vectores numéricos.
+ */
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length || a.length === 0) return 0;
+  let dotProduct = 0;
+  let mA = 0;
+  let mB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    mA += a[i] * a[i];
+    mB += b[i] * b[i];
+  }
+  if (mA === 0 || mB === 0) return 0;
+  return dotProduct / (Math.sqrt(mA) * Math.sqrt(mB));
 }
 
 export async function getRelevantHybridContext(
@@ -21,33 +48,36 @@ export async function getRelevantHybridContext(
   limit: number = 7
 ): Promise<string> {
   try {
-    const embedder = await EmbeddingPipeline.getInstance();
-    const output = await embedder(query, { pooling: "mean", normalize: true });
-    
-    const vectorArray = Array.from(output.data);
-    const formattedVector = `[${vectorArray.join(",")}]`;
+    const vectorArray = await embedText(query);
 
-    const documentos = await prisma.$queryRaw<
-      Array<{
-        id: string;
-        doc_type: string;
-        contenido: string;
-        metadatos: any;
-        similarity: number;
-      }>
-    >`
-      SELECT id, doc_type, contenido, metadatos, (1 - (embedding <=> ${formattedVector}::vector)) as similarity
-      FROM "DocumentoConocimiento"
-      ORDER BY embedding <=> ${formattedVector}::vector
-      LIMIT ${limit * 2};
-    `;
+    // 1. Recuperar todos los documentos de conocimiento en memoria
+    const allDocs = await prisma.documentoConocimiento.findMany();
 
-    if (!documentos || documentos.length === 0) {
+    // 2. Mapear y calcular la similitud en caliente
+    const documentosWithSim = allDocs
+      .map(doc => {
+        const docVector = parseVector(doc.embedding);
+        const similarity = cosineSimilarity(vectorArray, docVector);
+        return {
+          id: doc.id,
+          doc_type: doc.doc_type,
+          contenido: doc.contenido,
+          metadatos: doc.metadatos,
+          similarity
+        };
+      })
+      .filter(doc => doc.similarity > 0);
+
+    if (documentosWithSim.length === 0) {
       return "No se encontró información relevante en la base de datos.";
     }
 
+    // Ordenar descendentemente por similitud y tomar candidatos para el contexto híbrido
+    documentosWithSim.sort((a, b) => b.similarity - a.similarity);
+    const candidates = documentosWithSim.slice(0, limit * 2);
+
     const hybridDocs = await Promise.all(
-      documentos.map(async (doc) => {
+      candidates.map(async (doc) => {
         let usageBonus = 0.0;
         const meta = typeof doc.metadatos === "string" ? JSON.parse(doc.metadatos) : doc.metadatos;
         const pokemonA = meta?.pokemon_a;
@@ -97,34 +127,34 @@ export async function getRelevantHybridContext(
 export async function getRelevantContext(query: string, limit: number = 7): Promise<string> {
   try {
     // 1. Generar el embedding de la petición del usuario
-    const embedder = await EmbeddingPipeline.getInstance();
-    const output = await embedder(query, { pooling: "mean", normalize: true });
-    
-    // Convertir a string con formato de vector PostgreSQL: "[0.1, 0.2, ...]"
-    const vectorArray = Array.from(output.data);
-    const formattedVector = `[${vectorArray.join(",")}]`;
+    const vectorArray = await embedText(query);
 
-    // 2. Realizar la búsqueda de similitud del coseno (<=>) en pgvector
-    // Usamos <=> en lugar de <-> porque nuestros vectores están normalizados (distancia de coseno es más precisa para texto)
-    const documentos = await prisma.$queryRaw<
-      Array<{
-        doc_type: string;
-        contenido: string;
-      }>
-    >`
-      SELECT doc_type, contenido
-      FROM "DocumentoConocimiento"
-      ORDER BY embedding <=> ${formattedVector}::vector
-      LIMIT ${limit};
-    `;
+    // 2. Recuperar todos los documentos de conocimiento en memoria
+    const allDocs = await prisma.documentoConocimiento.findMany();
 
-    // 3. Formatear los documentos recuperados en un solo gran bloque de texto de contexto
-    if (!documentos || documentos.length === 0) {
+    // 3. Mapear y calcular la similitud en caliente
+    const documentosWithSim = allDocs
+      .map(doc => {
+        const docVector = parseVector(doc.embedding);
+        const similarity = cosineSimilarity(vectorArray, docVector);
+        return {
+          doc_type: doc.doc_type,
+          contenido: doc.contenido,
+          similarity
+        };
+      })
+      .filter(doc => doc.similarity > 0);
+
+    if (documentosWithSim.length === 0) {
       return "No se encontró información relevante en la base de datos.";
     }
 
+    // Ordenar descendentemente por similitud y tomar los mejores
+    documentosWithSim.sort((a, b) => b.similarity - a.similarity);
+    const selectedDocs = documentosWithSim.slice(0, limit);
+
     let contextoStr = "--- INICIO DE CONTEXTO RECUPERADO ---\n\n";
-    documentos.forEach((doc, i) => {
+    selectedDocs.forEach((doc, i) => {
       contextoStr += `Documento ${i + 1} (${doc.doc_type}):\n`;
       contextoStr += `${doc.contenido}\n\n`;
     });
@@ -136,3 +166,4 @@ export async function getRelevantContext(query: string, limit: number = 7): Prom
     throw new Error("Fallo al recuperar el contexto RAG de la base de datos.");
   }
 }
+

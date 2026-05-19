@@ -37,7 +37,9 @@ async function fetchSmogonChaos(format: string): Promise<{ data: any; info: any 
     };
   });
 
-  const cutoffs = format.includes("ou") ? [1695, 1825, 1500, 0] : [1630, 1760, 1500, 0];
+  const cutoffs = (format.includes("ou") || format.includes("nationaldex")) 
+    ? [1695, 1630, 1825, 1760, 1500, 0] 
+    : [1630, 1760, 1500, 0];
 
   for (const { year, month } of monthsToTry) {
     for (const cutoff of cutoffs) {

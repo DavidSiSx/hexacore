@@ -9,13 +9,15 @@ import DamageCalcPanel from "@/app/components/DamageCalcPanel";
 import AutocompleteSelect from "@/app/components/Shared/AutocompleteSelect";
 import { searchPokemonSpecies } from "@/app/actions/pokedex";
 import { searchMoves, searchAbilities, searchItems } from "@/app/actions/encyclopedia";
-import { Settings, Check, X, ShieldAlert, Zap, SwatchBook, Sparkles } from "lucide-react";
+import { Settings, Check, X, ShieldAlert, Zap, SwatchBook, Sparkles, Lock, Unlock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TeamPokemonCardProps {
   pokemon: PokemonBuild;
   index: number;
   onChange?: (updated: PokemonBuild) => void;
+  isLocked?: boolean;
+  onToggleLock?: () => void;
 }
 
 const NATURES = [
@@ -39,7 +41,7 @@ function formatEvs(evs?: Record<string, number | undefined>): string {
     .join(" / ");
 }
 
-export default function TeamPokemonCard({ pokemon, index, onChange }: TeamPokemonCardProps) {
+export default function TeamPokemonCard({ pokemon, index, onChange, isLocked, onToggleLock }: TeamPokemonCardProps) {
   const { activeTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [showDamageCalc, setShowDamageCalc] = useState(false);
@@ -174,53 +176,68 @@ export default function TeamPokemonCard({ pokemon, index, onChange }: TeamPokemo
 
   return (
     <>
-      <div className={`border-4 ${activeTheme.borderClass} ${activeTheme.cardBgClass} p-5 flex flex-col gap-4 group 
+      <div className={`border-4 ${isLocked ? "border-amber-500 shadow-[6px_6px_0px_#d97706]" : `${activeTheme.borderClass} shadow-[4px_4px_0px_#000000]`} ${activeTheme.cardBgClass} p-5 flex flex-col gap-4 group 
                        hover:translate-x-1 hover:-translate-y-1 transition-all relative`}>
         
-        {/* Botones de acción del slot */}
-        <div className="absolute top-4 right-4 flex gap-2 z-10">
-          <button
-            onClick={() => setShowDamageCalc(!showDamageCalc)}
-            className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
-                       hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
-                       text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            {showDamageCalc ? "Ocultar Daño" : "Simular Daño"}
-          </button>
-          <button
-            onClick={() => setIsEditing(true)}
-            className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
-                       hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
-                       text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            Editar
-          </button>
-        </div>
+        {/* Header: Sprite + Name + Role con Acciones integradas en flujo */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 pb-4 border-dashed border-zinc-800">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="relative w-16 h-16 shrink-0">
+              <SpriteImg
+                species={pokemon.species}
+                width={64}
+                height={64}
+                className="drop-shadow-md group-hover:scale-110 transition-transform"
+              />
+              <span className={`absolute -top-2 -left-2 w-6 h-6 bg-[var(--accent)] text-[var(--accent-foreground)]
+                              text-[10px] font-black flex items-center justify-center border-2 border-[var(--background)]`}>
+                {index + 1}
+              </span>
+            </div>
 
-        {/* Header: Sprite + Name + Role */}
-        <div className="flex items-center gap-4 pr-32">
-          <div className="relative w-16 h-16 shrink-0">
-            <SpriteImg
-              species={pokemon.species}
-              width={64}
-              height={64}
-              className="drop-shadow-md group-hover:scale-110 transition-transform"
-            />
-            <span className={`absolute -top-2 -left-2 w-6 h-6 bg-[var(--accent)] text-[var(--accent-foreground)]
-                            text-[10px] font-black flex items-center justify-center border-2 border-[var(--background)]`}>
-              {index + 1}
-            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className={`text-lg font-black uppercase tracking-tighter ${activeTheme.textMainClass} truncate`}>
+                {pokemon.species}
+              </h3>
+              <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} truncate`}>
+                {pokemon.role}
+              </p>
+            </div>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <h3 className={`text-lg font-black uppercase tracking-tighter ${activeTheme.textMainClass} truncate`}>
-              {pokemon.species}
-            </h3>
-            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} truncate`}>
-              {pokemon.species} Plan de Combate
-            </p>
+          <div className="flex flex-wrap gap-2 items-center z-10 sm:self-start shrink-0">
+            {onToggleLock && (
+              <button
+                onClick={onToggleLock}
+                className={`p-1.5 border-2 ${
+                  isLocked 
+                    ? "bg-amber-500/20 text-amber-400 border-amber-500" 
+                    : `${activeTheme.borderClass} ${activeTheme.cardBgClass} hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/50`
+                } text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all`}
+                title={isLocked ? "Desbloquear ranura" : "Bloquear ranura para que no sea cambiada por la IA"}
+              >
+                {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5" />}
+                {isLocked ? "Bloqueado" : "Bloquear"}
+              </button>
+            )}
+            <button
+              onClick={() => setShowDamageCalc(!showDamageCalc)}
+              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
+                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              {showDamageCalc ? "Ocultar Daño" : "Simular Daño"}
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
+                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
+            >
+              <Settings className="w-3.5 h-3.5" />
+              Editar
+            </button>
           </div>
         </div>
 
@@ -301,13 +318,76 @@ export default function TeamPokemonCard({ pokemon, index, onChange }: TeamPokemo
           )}
         </div>
 
-        {/* Panel Flotante de Simulación de Daño */}
-        {showDamageCalc && (
-          <div className={`mt-4 pt-4 border-t-4 border-dashed ${activeTheme.borderClass}`}>
-            <DamageCalcPanel pokemon={pokemon} />
-          </div>
-        )}
+        {/* Panel de Simulación de Daño se eliminó de aquí para mostrarse en modal */}
       </div>
+
+      {/* MODAL DE SIMULACIÓN DE DAÑO (CÁLCULO DEL META) */}
+      <AnimatePresence>
+        {showDamageCalc && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDamageCalc(false)}
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md cursor-pointer"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.35 }}
+              className="fixed inset-4 md:inset-auto md:w-full md:max-w-4xl md:h-[90vh] z-50 bg-zinc-950 border-4 border-[var(--accent)] shadow-[8px_8px_0px_black] p-6 flex flex-col justify-between overflow-hidden md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 text-white"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center pb-4 border-b-2 border-zinc-800 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-10 h-10 shrink-0">
+                    <SpriteImg
+                      species={pokemon.species}
+                      width={40}
+                      height={40}
+                      className="drop-shadow-md [image-rendering:pixelated]"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter italic">
+                      Simulación de Daño vs <span className="text-[var(--accent)]">Metagame</span>
+                    </h3>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass}`}>
+                      {pokemon.species} &bull; {pokemon.item}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDamageCalc(false)}
+                  className="p-1.5 border-2 border-zinc-700 hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto py-6 pr-1">
+                <DamageCalcPanel pokemon={pokemon} />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-4 border-t-2 border-zinc-800 flex justify-end shrink-0">
+                <button
+                  onClick={() => setShowDamageCalc(false)}
+                  className="px-6 py-2 border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  Cerrar Simulación
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* MODAL DE EDICIÓN EXCLUSIVO */}
       <AnimatePresence>

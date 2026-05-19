@@ -53,6 +53,10 @@ export class PkmnDexProvider implements ExternalDexProvider {
     let esName = name;
     let esDesc = '';
 
+    if (process.env.SKIP_POKEAPI === 'true') {
+      return { esName, esDesc };
+    }
+
     try {
       const res = await fetch(`https://pokeapi.co/api/v2/${type}/${slug}`);
       if (res.ok) {
@@ -86,6 +90,10 @@ export class PkmnDexProvider implements ExternalDexProvider {
       categoryEn: null,
       nameEs: null
     };
+
+    if (process.env.SKIP_POKEAPI === 'true') {
+      return result;
+    }
 
     try {
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeApiName}`);

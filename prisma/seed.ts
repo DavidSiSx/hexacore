@@ -1,17 +1,16 @@
 import 'dotenv/config';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaKnowledgeRepository } from '../src/core/infrastructure/database/PrismaKnowledgeRepository';
 import { GoogleEmbeddingService } from '../src/core/infrastructure/ai/GoogleEmbeddingService';
 import { PkmnDexProvider } from '../src/core/infrastructure/external/PkmnDexProvider';
 import { ConsoleLogger } from '../src/core/infrastructure/logging/ConsoleLogger';
 import { SeedKnowledgeVaultUseCase } from '../src/core/application/usecases/SeedKnowledgeVaultUseCase';
 
-const CONNECTION_STRING = process.env.DIRECT_URL || process.env.DATABASE_URL;
-const POOL = new Pool({ connectionString: CONNECTION_STRING });
-const ADAPTER = new PrismaPg(POOL);
-const PRISMA = new PrismaClient({ adapter: ADAPTER });
+process.env.SKIP_POKEAPI = 'true';
+
+const adapter = new PrismaBetterSqlite3({ url: 'file:./prisma/dev.db' });
+const PRISMA = new PrismaClient({ adapter });
 
 /**
  * Punto de entrada principal para el proceso de siembra y RAG de Hexacore.
@@ -41,11 +40,10 @@ async function main(): Promise<void> {
 
 main()
   .catch((err: unknown) => {
-    const message = err instanceof Error ? err.message : String(err);
-    process.stderr.write(`[FATAL] ${message}\n`);
+    const stack = err instanceof Error ? err.stack : String(err);
+    process.stderr.write(`[FATAL] ${stack}\n`);
     process.exit(1);
   })
   .finally(async () => {
     await PRISMA.$disconnect();
-    await POOL.end();
   });

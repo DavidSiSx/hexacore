@@ -1,17 +1,15 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider   = "postgresql"
-  extensions = [uuid_ossp(map: "uuid-ossp"), vector]
+  provider = "sqlite"
 }
 
 /// Representa tanto Pokémon oficiales como Fakemons creados por la comunidad.
 /// Utiliza un modelo híbrido: metadatos relacionales para ordenamiento y JSONB para atributos dinámicos.
 model Criatura {
-  id                   String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                   String     @id @default(uuid())
   nombre               String     @unique
   slug                 String     @unique
   autor                String?    @default("oficial")
@@ -24,29 +22,28 @@ model Criatura {
   categorias           Json?
   descripciones        Json?
   nombres              Json?
-  base_species_id      String?    @db.Uuid
+  base_species_id      String?
   base_species         Criatura?  @relation("FormInheritance", fields: [base_species_id], references: [id])
   forms                Criatura[] @relation("FormInheritance")
 
-  @@index([atributos_de_combate(ops: JsonbPathOps)], map: "idx_criatura_atributos_gin", type: Gin)
-  @@index([popularidad_score(sort: Desc)])
+  @@index([popularidad_score])
 }
 
 /// Almacena el conocimiento semántico del metajuego, incluyendo reportes de torneos (chunks) y reflexiones autónomas.
 model DocumentoConocimiento {
-  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid())
   doc_type   String
   contenido  String
   metadatos  Json
-  embedding  Unsupported("vector")?
-  created_at DateTime               @default(now())
+  embedding  String?
+  created_at DateTime @default(now())
 
-  @@index([embedding])
+  @@index([doc_type])
 }
 
 /// Sinergias del metajuego calculadas a partir de co-ocurrencia en Smogon Chaos
 model SinergiaMetagame {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid())
   pokemon_a  String
   pokemon_b  String
   usage_rate Float
@@ -59,7 +56,7 @@ model SinergiaMetagame {
 
 /// Sustrato de Inteligencia de Trazas: Registra la "Verdad Terrestre" cuando un usuario corrige a la IA.
 model TrazaCorreccion {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                  String   @id @default(uuid())
   session_id          String
   prompt_original     String
   contexto_rag_usado  Json
@@ -73,7 +70,7 @@ model TrazaCorreccion {
 
 /// Representa un Objeto equipable en el juego (Ej: Leftovers, Choice Band)
 model Objeto {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String   @id @default(uuid())
   nombre        String   @unique
   slug          String   @unique
   sprite_url    String?
@@ -85,7 +82,7 @@ model Objeto {
 
 /// Representa una Habilidad de un Pokémon (Ej: Intimidate, Levitate)
 model Habilidad {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String   @id @default(uuid())
   nombre        String   @unique
   slug          String   @unique
   atributos     Json?
@@ -96,7 +93,7 @@ model Habilidad {
 
 /// Representa un Movimiento (Ej: Earthquake, Protect)
 model Movimiento {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String   @id @default(uuid())
   nombre        String   @unique
   slug          String   @unique
   tipo          String
@@ -111,7 +108,7 @@ model Movimiento {
 
 /// Representa un Formato o Ruleset del Metajuego (Ej: VGC 2024 Reg G, OU Gen 9)
 model Formato {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String   @id @default(uuid())
   nombre      String   @unique
   descripcion String
   reglas      Json
@@ -119,26 +116,40 @@ model Formato {
 }
 
 /// Usuario autenticado vía Supabase Auth.
-/// El `id` coincide con el `auth.uid()` de Supabase para habilitar RLS.
 model Usuario {
-  id         String   @id @db.Uuid
-  email      String   @unique
-  nombre     String
-  avatar_url String?
-  created_at DateTime @default(now())
-  equipos    Equipo[]
+  id                     String                 @id
+  email                  String                 @unique
+  nombre                 String
+  avatar_url             String?
+  created_at             DateTime               @default(now())
+  equipos                Equipo[]
+  formatosPersonalizados FormatoPersonalizado[]
+}
+
+/// Representa un formato personalizado creado y guardado por el usuario.
+model FormatoPersonalizado {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String
+  reglas      Json     // Almacenará: { speciesClause: boolean, itemClause: boolean, allowMega: boolean, allowZMove: boolean, allowTera: boolean, maxLevel: number, minLevel: number, bans: { pokemon: string[], items: string[], moves: string[], abilities: string[] } }
+  usuarioId   String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
 }
 
 /// Un equipo competitivo guardado por el usuario.
 model Equipo {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid())
   nombre     String
   formato    String
   miembros   Json
   estrategia String?
   origen     String   @default("manual")
   pokepaste  String?
-  usuarioId  String   @db.Uuid
+  usuarioId  String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   usuario    Usuario  @relation(fields: [usuarioId], references: [id])
@@ -148,8 +159,8 @@ model Equipo {
 
 /// Control de tasa de peticiones para endpoints críticos/costosos.
 model RateLimit {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  usuarioId  String   @db.Uuid
+  id         String   @id @default(uuid())
+  usuarioId  String
   endpoint   String   // Ej: "buildTeamAction"
   peticiones Int      @default(1)
   resetAt    DateTime

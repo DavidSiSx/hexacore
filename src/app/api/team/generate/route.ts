@@ -54,6 +54,36 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        if (cleanOptions && cleanOptions.format) {
+          // Intentar buscar si es un formato personalizado del usuario
+          try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanOptions.format);
+            if (isUuid) {
+              const formatoPersonalizado = await prisma.formatoPersonalizado.findFirst({
+                where: {
+                  id: cleanOptions.format,
+                  usuarioId: user.id,
+                }
+              });
+              if (formatoPersonalizado) {
+                const reglas = formatoPersonalizado.reglas as any;
+                cleanOptions.customRules = {
+                  speciesClause: reglas?.speciesClause ?? true,
+                  itemClause: reglas?.itemClause ?? false,
+                  allowMega: reglas?.allowMega ?? true,
+                  allowZMove: reglas?.allowZMove ?? true,
+                  allowTera: reglas?.allowTera ?? true,
+                  minLevel: reglas?.minLevel ?? 1,
+                  maxLevel: reglas?.maxLevel ?? 100,
+                  bans: reglas?.bans ?? { pokemon: [], items: [], moves: [], abilities: [] },
+                };
+              }
+            }
+          } catch (e) {
+            console.error("Error al buscar formato personalizado:", e);
+          }
+        }
+
         // 4. Control de Tasa (Rate Limiting) persistido en PostgreSQL mediante Prisma
         send({ type: "log", message: "🛡️ Verificando límites seguros de tasa de peticiones..." });
         const endpoint = "buildTeamAction";
@@ -112,7 +142,19 @@ export async function POST(req: NextRequest) {
 
         // 5. RAG Híbrido: Consultar vectores de pgvector potenciados con Smogon Chaos Cores
         send({ type: "log", message: "📡 Consultando la base de datos vectorial de Hexacore (Hybrid RAG)..." });
-        const formatStr = cleanOptions?.format || "gen9ou";
+        let formatStr = "gen9ou";
+        if (cleanOptions?.format) {
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanOptions.format);
+          if (isUuid) {
+            if (cleanOptions.customRules?.allowMega || cleanOptions.customRules?.allowZMove) {
+              formatStr = "gen9nationaldexou";
+            } else {
+              formatStr = "gen9ou";
+            }
+          } else {
+            formatStr = cleanOptions.format;
+          }
+        }
         
         // Enriquecer la consulta RAG
         let ragQuery = cleanQuery;

@@ -24,18 +24,22 @@ export interface MoveFilters {
 export async function searchMoves(query: string, limit = 50): Promise<MoveResult[]> {
   if (!query || query.trim().length < 2) return [];
   const q = query.trim().toLowerCase();
-  const moves = await prisma.movimiento.findMany({
-    where: {
-      OR: [
-        { nombre: { contains: q, mode: "insensitive" } },
-        { nombres: { path: ["es"], string_contains: q } },
-        { nombres: { path: ["en"], string_contains: q } }
-      ]
-    },
-    take: limit,
-    orderBy: { nombre: "asc" },
+  
+  const allMoves = await prisma.movimiento.findMany({
+    orderBy: { nombre: "asc" }
   });
-  return moves.map(m => ({ ...m, atributos: m.atributos as any }));
+
+  const filtered = allMoves.filter(m => {
+    const nombres = m.nombres as any;
+    return (
+      m.nombre.toLowerCase().includes(q) ||
+      m.slug.toLowerCase().includes(q) ||
+      (nombres?.es && nombres.es.toLowerCase().includes(q)) ||
+      (nombres?.en && nombres.en.toLowerCase().includes(q))
+    );
+  });
+
+  return filtered.slice(0, limit).map(m => ({ ...m, atributos: m.atributos as any }));
 }
 
 export async function getAllMoves(page = 1, perPage = 60, filters?: MoveFilters & { searchQuery?: string; lang?: string }): Promise<{ moves: MoveResult[]; total: number }> {
@@ -43,22 +47,28 @@ export async function getAllMoves(page = 1, perPage = 60, filters?: MoveFilters 
   if (filters?.tipo) where.tipo = filters.tipo;
   if (filters?.categoria) where.categoria = filters.categoria;
   
+  let moves = await prisma.movimiento.findMany({
+    where,
+    orderBy: { nombre: "asc" }
+  });
+
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    // Sanitización preventiva del path de lenguajes en JSONB
     const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
-    where.OR = [
-      { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [cleanLang], string_contains: q } },
-      { nombres: { path: ["es"], string_contains: q } }
-    ];
+    moves = moves.filter(m => {
+      const nombres = m.nombres as any;
+      return (
+        m.nombre.toLowerCase().includes(q) ||
+        (nombres?.[cleanLang] && nombres[cleanLang].toLowerCase().includes(q)) ||
+        (nombres?.es && nombres.es.toLowerCase().includes(q))
+      );
+    });
   }
 
-  const [moves, total] = await Promise.all([
-    prisma.movimiento.findMany({ where, skip: (page - 1) * perPage, take: perPage, orderBy: { nombre: "asc" } }),
-    prisma.movimiento.count({ where }),
-  ]);
-  return { total, moves: moves.map(m => ({ ...m, atributos: m.atributos as any })) };
+  const total = moves.length;
+  const paginatedMoves = moves.slice((page - 1) * perPage, page * perPage);
+
+  return { total, moves: paginatedMoves.map(m => ({ ...m, atributos: m.atributos as any })) };
 }
 
 export async function getMoveBySlug(slug: string): Promise<MoveResult | null> {
@@ -80,33 +90,47 @@ export interface AbilityResult {
 
 export async function searchAbilities(query: string, limit = 50): Promise<AbilityResult[]> {
   if (!query || query.trim().length < 2) return [];
-  const abs = await prisma.habilidad.findMany({
-    where: { nombre: { contains: query.trim(), mode: "insensitive" } },
-    take: limit,
-    orderBy: { nombre: "asc" },
+  const q = query.trim().toLowerCase();
+
+  const allAbilities = await prisma.habilidad.findMany({
+    orderBy: { nombre: "asc" }
   });
-  return abs.map(a => ({ ...a, atributos: a.atributos as any }));
+
+  const filtered = allAbilities.filter(a => {
+    const nombres = a.nombres as any;
+    return (
+      a.nombre.toLowerCase().includes(q) ||
+      a.slug.toLowerCase().includes(q) ||
+      (nombres?.es && nombres.es.toLowerCase().includes(q)) ||
+      (nombres?.en && nombres.en.toLowerCase().includes(q))
+    );
+  });
+
+  return filtered.slice(0, limit).map(a => ({ ...a, atributos: a.atributos as any }));
 }
 
 export async function getAllAbilities(page = 1, perPage = 60, filters?: { searchQuery?: string; lang?: string }): Promise<{ abilities: AbilityResult[]; total: number }> {
-  const where: any = {};
-  
+  let abs = await prisma.habilidad.findMany({
+    orderBy: { nombre: "asc" }
+  });
+
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    // Sanitización preventiva del path de lenguajes en JSONB
     const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
-    where.OR = [
-      { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [cleanLang], string_contains: q } },
-      { nombres: { path: ["es"], string_contains: q } }
-    ];
+    abs = abs.filter(a => {
+      const nombres = a.nombres as any;
+      return (
+        a.nombre.toLowerCase().includes(q) ||
+        (nombres?.[cleanLang] && nombres[cleanLang].toLowerCase().includes(q)) ||
+        (nombres?.es && nombres.es.toLowerCase().includes(q))
+      );
+    });
   }
 
-  const [abs, total] = await Promise.all([
-    prisma.habilidad.findMany({ where, skip: (page - 1) * perPage, take: perPage, orderBy: { nombre: "asc" } }),
-    prisma.habilidad.count({ where }),
-  ]);
-  return { total, abilities: abs.map(a => ({ ...a, atributos: a.atributos as any })) };
+  const total = abs.length;
+  const paginatedAbs = abs.slice((page - 1) * perPage, page * perPage);
+
+  return { total, abilities: paginatedAbs.map(a => ({ ...a, atributos: a.atributos as any })) };
 }
 
 export async function getAbilityBySlug(slug: string): Promise<AbilityResult | null> {
@@ -130,39 +154,46 @@ export interface ItemResult {
 export async function searchItems(query: string, limit = 50): Promise<ItemResult[]> {
   if (!query || query.trim().length < 2) return [];
   const q = query.trim().toLowerCase();
-  const items = await prisma.objeto.findMany({
-    where: {
-      OR: [
-        { nombre: { contains: q, mode: "insensitive" } },
-        { nombres: { path: ["es"], string_contains: q } },
-        { nombres: { path: ["en"], string_contains: q } }
-      ]
-    },
-    take: limit,
-    orderBy: { nombre: "asc" },
+
+  const allItems = await prisma.objeto.findMany({
+    orderBy: { nombre: "asc" }
   });
-  return items.map(i => ({ ...i, atributos: i.atributos as any }));
+
+  const filtered = allItems.filter(i => {
+    const nombres = i.nombres as any;
+    return (
+      i.nombre.toLowerCase().includes(q) ||
+      i.slug.toLowerCase().includes(q) ||
+      (nombres?.es && nombres.es.toLowerCase().includes(q)) ||
+      (nombres?.en && nombres.en.toLowerCase().includes(q))
+    );
+  });
+
+  return filtered.slice(0, limit).map(i => ({ ...i, atributos: i.atributos as any }));
 }
 
 export async function getAllItems(page = 1, perPage = 60, filters?: { searchQuery?: string; lang?: string }): Promise<{ items: ItemResult[]; total: number }> {
-  const where: any = {};
+  let items = await prisma.objeto.findMany({
+    orderBy: { nombre: "asc" }
+  });
 
   if (filters?.searchQuery) {
     const q = filters.searchQuery.trim().toLowerCase();
-    // Sanitización preventiva del path de lenguajes en JSONB
     const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
-    where.OR = [
-      { nombre: { contains: q, mode: "insensitive" } },
-      { nombres: { path: [cleanLang], string_contains: q } },
-      { nombres: { path: ["es"], string_contains: q } }
-    ];
+    items = items.filter(i => {
+      const nombres = i.nombres as any;
+      return (
+        i.nombre.toLowerCase().includes(q) ||
+        (nombres?.[cleanLang] && nombres[cleanLang].toLowerCase().includes(q)) ||
+        (nombres?.es && nombres.es.toLowerCase().includes(q))
+      );
+    });
   }
 
-  const [items, total] = await Promise.all([
-    prisma.objeto.findMany({ where, skip: (page - 1) * perPage, take: perPage, orderBy: { nombre: "asc" } }),
-    prisma.objeto.count({ where }),
-  ]);
-  return { total, items: items.map(i => ({ ...i, atributos: i.atributos as any })) };
+  const total = items.length;
+  const paginatedItems = items.slice((page - 1) * perPage, page * perPage);
+
+  return { total, items: paginatedItems.map(i => ({ ...i, atributos: i.atributos as any })) };
 }
 
 export async function getItemBySlug(slug: string): Promise<ItemResult | null> {
@@ -171,3 +202,4 @@ export async function getItemBySlug(slug: string): Promise<ItemResult | null> {
   });
   return i ? { ...i, atributos: i.atributos as any } : null;
 }
+

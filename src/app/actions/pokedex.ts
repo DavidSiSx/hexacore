@@ -80,156 +80,140 @@ export async function getAllPokemon(
   sortOrder: "asc" | "desc" = "asc"
 ): Promise<{ pokemon: PokemonSearchResult[]; total: number }> {
   try {
-    const { conditions, params, nextParamIdx } = buildWhereClause(filters);
-    const where = conditions.length > 0 ? conditions.join(" AND ") : "1=1";
-    const orderSql = buildOrderBy(sortBy, sortOrder);
+    const where: any = {};
+    if (!filters?.showCap) {
+      where.es_fakemon = false;
+    }
 
-    const [countResult, databaseRecords] = await Promise.all([
-      prisma.$queryRawUnsafe<[{ count: bigint }]>(
-        `SELECT COUNT(*) FROM "Criatura" WHERE ${where}`, 
-        ...params
-      ),
-      prisma.$queryRawUnsafe<Record<string, unknown>[]>(
-        `SELECT id, nombre, slug, nombres, descripciones, categorias, es_fakemon,
-        jsonb_build_object(
-          'tipos', "atributos_de_combate"->'tipos',
-          'tier', "atributos_de_combate"->'tier',
-          'sprite_url', "atributos_de_combate"->'sprite_url',
-          'stats_base', "atributos_de_combate"->'stats_base',
-          'habilidades', "atributos_de_combate"->'habilidades',
-          'tags', "atributos_de_combate"->'tags',
-          'generacion', "atributos_de_combate"->'generacion',
-          'num', "atributos_de_combate"->'num',
-          'peso', "atributos_de_combate"->'peso',
-          'altura', "atributos_de_combate"->'altura',
-          'usage_stats', "atributos_de_combate"->'usage_stats'
-        ) AS "atributos_de_combate"
-        FROM "Criatura" WHERE ${where} ORDER BY ${orderSql} LIMIT $${nextParamIdx} OFFSET $${nextParamIdx + 1}`,
-        ...params, 
-        perPage, 
-        (page - 1) * perPage
-      ),
-    ]);
+    const allRecords = await prisma.criatura.findMany({
+      where,
+    });
+
+    let results = allRecords.map(mapToSearchResult);
+
+    // Apply filtering in memory
+    if (filters?.searchQuery) {
+      const q = filters.searchQuery.trim().toLowerCase();
+      if (!isNaN(Number(q))) {
+        const numQuery = Number(q);
+        results = results.filter(r => r.num === numQuery);
+      } else {
+        const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
+        results = results.filter(r => 
+          r.nombre.toLowerCase().includes(q) ||
+          r.slug.toLowerCase().includes(q) ||
+          (r.nombres?.[cleanLang] && r.nombres[cleanLang].toLowerCase().includes(q)) ||
+          (r.nombres?.es && r.nombres.es.toLowerCase().includes(q))
+        );
+      }
+    }
+
+    if (filters?.types && filters.types.values.length > 0) {
+      const typeVals = filters.types.values.map(v => v.toLowerCase());
+      if (filters.types.logic === "AND") {
+        results = results.filter(r => 
+          typeVals.every(tv => r.tipos.map(t => t.toLowerCase()).includes(tv))
+        );
+      } else {
+        results = results.filter(r => 
+          typeVals.some(tv => r.tipos.map(t => t.toLowerCase()).includes(tv))
+        );
+      }
+    }
+
+    if (filters?.tags && filters.tags.length > 0) {
+      const filterTags = filters.tags.map(t => t.toLowerCase());
+      results = results.filter(r => {
+        const rTags = (r.tags || []).map(t => t.toLowerCase());
+        return filterTags.every(ft => rTags.includes(ft));
+      });
+    }
+
+    if (filters?.generations && filters.generations.length > 0) {
+      results = results.filter(r => r.generacion !== undefined && filters.generations!.includes(r.generacion));
+    }
+
+    if (filters?.tiers && filters.tiers.length > 0) {
+      const filterTiers = filters.tiers.map(t => t.toLowerCase());
+      results = results.filter(r => filterTiers.includes(r.tier.toLowerCase()));
+    }
+
+    if (filters?.abilities && filters.abilities.length > 0) {
+      const filterAbilities = filters.abilities.map(a => a.toLowerCase());
+      results = results.filter(r => 
+        (r.habilidades || []).some(hab => filterAbilities.includes(hab.toLowerCase()))
+      );
+    }
+
+    if (filters?.stats) {
+      for (const [stat, range] of Object.entries(filters.stats)) {
+        if (!range) continue;
+        if (stat !== "bst" && !STAT_KEYS.includes(stat)) continue;
+        const { min, max } = range as { min?: number; max?: number };
+
+        results = results.filter(r => {
+          let val = 0;
+          if (stat === "bst") {
+            val = STAT_KEYS.reduce((sum, key) => sum + (r.stats_base[key] || 0), 0);
+          } else {
+            val = r.stats_base[stat] || 0;
+          }
+
+          if (min !== undefined && val < min) return false;
+          if (max !== undefined && val > max) return false;
+          return true;
+        });
+      }
+    }
+
+    if (filters?.weight) {
+      const { min, max } = filters.weight;
+      results = results.filter(r => {
+        const w = r.peso || 0;
+        if (min !== undefined && w < min) return false;
+        if (max !== undefined && w > max) return false;
+        return true;
+      });
+    }
+
+    // Apply sorting in memory
+    results.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      if (sortBy === "nombre") {
+        valA = a.nombre.toLowerCase();
+        valB = b.nombre.toLowerCase();
+        return sortOrder === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      } else if (sortBy === "bst") {
+        valA = STAT_KEYS.reduce((sum, key) => sum + (a.stats_base[key] || 0), 0);
+        valB = STAT_KEYS.reduce((sum, key) => sum + (b.stats_base[key] || 0), 0);
+      } else if (STAT_KEYS.includes(sortBy)) {
+        valA = a.stats_base[sortBy] || 0;
+        valB = b.stats_base[sortBy] || 0;
+      } else {
+        // default by num
+        valA = a.num || 0;
+        valB = b.num || 0;
+      }
+
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      
+      // Secondary sorting to keep it stable
+      return a.nombre.localeCompare(b.nombre);
+    });
+
+    const total = results.length;
+    const paginated = results.slice((page - 1) * perPage, page * perPage);
 
     return {
-      total: Number(countResult[0].count),
-      pokemon: databaseRecords.map(mapToSearchResult),
+      total,
+      pokemon: paginated,
     };
   } catch (error) {
     throw new Error(`Failed to fetch pokedex: ${error instanceof Error ? error.message : String(error)}`);
   }
-}
-
-function buildWhereClause(filters?: PokemonFilters) {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-  let idx = 1;
-
-  if (!filters?.showCap) {
-    conditions.push(`"es_fakemon" = false`);
-  }
-
-  if (filters?.searchQuery) {
-    const query = filters.searchQuery.trim().toLowerCase();
-    if (!isNaN(Number(query))) {
-      conditions.push(`("atributos_de_combate"->>'num')::int = $${idx++}`);
-      params.push(Number(query));
-    } else {
-      // Blindaje estricto de lang para evitar inyecciones en el jsonb path
-      const cleanLang = (filters.lang === "es" || filters.lang === "en") ? filters.lang : "en";
-      conditions.push(`(LOWER("nombres"->>'${cleanLang}') LIKE $${idx} OR LOWER("nombre") LIKE $${idx})`);
-      params.push(`%${query}%`);
-      idx++;
-    }
-  }
-
-  if (filters?.types && filters.types.values.length > 0) {
-    if (filters.types.logic === "AND") {
-      conditions.push(`"atributos_de_combate"->'tipos' @> $${idx++}::jsonb`);
-      params.push(JSON.stringify(filters.types.values));
-    } else {
-      conditions.push(`"atributos_de_combate"->'tipos' ?| ARRAY[${filters.types.values.map(() => `$${idx++}`).join(",")}]`);
-      filters.types.values.forEach(value => params.push(value));
-    }
-  }
-
-  if (filters?.tags && filters.tags.length > 0) {
-    const tagConditions = filters.tags.map(() => `"atributos_de_combate"->'tags' @> $${idx++}::jsonb`);
-    conditions.push(`(${tagConditions.join(" OR ")})`);
-    filters.tags.forEach(tag => params.push(JSON.stringify([tag])));
-  }
-
-  if (filters?.generations && filters.generations.length > 0) {
-    conditions.push(`("atributos_de_combate"->>'generacion')::int = ANY($${idx++}::int[])`);
-    params.push(filters.generations);
-  }
-
-  if (filters?.tiers && filters.tiers.length > 0) {
-    conditions.push(`"atributos_de_combate"->>'tier' = ANY($${idx++}::text[])`);
-    params.push(filters.tiers);
-  }
-
-  if (filters?.abilities && filters.abilities.length > 0) {
-    conditions.push(`"atributos_de_combate"->'habilidades' ?| ARRAY[${filters.abilities.map(() => `$${idx++}`).join(",")}]`);
-    filters.abilities.forEach(ability => params.push(ability));
-  }
-
-  if (filters?.stats) {
-    for (const [stat, range] of Object.entries(filters.stats)) {
-      if (!range) continue;
-      // Blindar contra inyecciones SQL a través de llaves de objetos dinámicas de estadísticas
-      if (stat !== "bst" && !STAT_KEYS.includes(stat)) {
-        continue;
-      }
-      const { min, max } = range as { min?: number; max?: number };
-      
-      let statSql: string;
-      if (stat === "bst") {
-        statSql = STAT_KEYS.map(key => `("atributos_de_combate"->'stats_base'->>'${key}')::int`).join(" + ");
-      } else {
-        statSql = `("atributos_de_combate"->'stats_base'->>'${stat}')::int`;
-      }
-
-      if (min !== undefined) {
-        conditions.push(`(${statSql}) >= $${idx++}`);
-        params.push(min);
-      }
-      if (max !== undefined) {
-        conditions.push(`(${statSql}) <= $${idx++}`);
-        params.push(max);
-      }
-    }
-  }
-
-  if (filters?.weight) {
-    const { min, max } = filters.weight;
-    if (min !== undefined) {
-      conditions.push(`("atributos_de_combate"->>'peso')::float >= $${idx++}`);
-      params.push(min);
-    }
-    if (max !== undefined) {
-      conditions.push(`("atributos_de_combate"->>'peso')::float <= $${idx++}`);
-      params.push(max);
-    }
-  }
-
-  return { conditions, params, nextParamIdx: idx };
-}
-
-function buildOrderBy(sortBy: string, sortOrder: "asc" | "desc"): string {
-  const direction = sortOrder === "desc" ? "DESC" : "ASC";
-  if (sortBy === "nombre") return `"nombre" ${direction}`;
-  
-  if (sortBy === "bst") {
-    const bstSum = STAT_KEYS.map(key => `("atributos_de_combate"->'stats_base'->>'${key}')::int`).join(" + ");
-    return `(${bstSum}) ${direction}, "nombre" ASC`;
-  }
-  
-  if (STAT_KEYS.includes(sortBy)) {
-    return `("atributos_de_combate"->'stats_base'->>'${sortBy}')::int ${direction}, "nombre" ASC`;
-  }
-
-  return `("atributos_de_combate"->>'num')::int ${direction}, LENGTH("nombre") ASC, "nombre" ASC`;
 }
 
 export async function getPokemonBySlug(slug: string): Promise<PokemonSearchResult | null> {
@@ -305,8 +289,8 @@ export async function searchPokemonSpecies(query: string, limit = 50): Promise<{
   const records = await prisma.criatura.findMany({
     where: {
       OR: [
-        { nombre: { contains: q, mode: "insensitive" } },
-        { slug: { contains: q, mode: "insensitive" } },
+        { nombre: { contains: q } },
+        { slug: { contains: q } },
       ],
     },
     take: limit,

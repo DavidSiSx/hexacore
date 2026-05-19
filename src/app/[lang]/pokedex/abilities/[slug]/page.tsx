@@ -10,12 +10,17 @@ async function getPokemonWithAbility(abilityName: string) {
   const criaturas = await prisma.criatura.findMany({
     where: {
       es_fakemon: false,
-      atributos_de_combate: { path: ["habilidades"], array_contains: abilityName },
     },
     orderBy: { nombre: "asc" },
-    take: 100,
   });
-  return criaturas.map(c => {
+  
+  const filtered = criaturas.filter(c => {
+    const attrs = c.atributos_de_combate as any;
+    const habilidades = Array.isArray(attrs?.habilidades) ? attrs.habilidades : [];
+    return habilidades.includes(abilityName);
+  });
+
+  return filtered.slice(0, 100).map(c => {
     const attrs = c.atributos_de_combate as any;
     return { nombre: c.nombre, slug: c.slug, tipos: attrs?.tipos || [] };
   });

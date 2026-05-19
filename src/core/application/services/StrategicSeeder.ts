@@ -105,7 +105,13 @@ export class StrategicSeeder {
     };
 
     await this.repository.upsertCreature(payload);
-    await this.saveRAGDocument(name, gen, types, abilitiesList, baseStats, smogonSets, setsDetails, smogonAnalyses, evolutionChain, learnset, tags);
+    
+    // Only generate RAG embeddings for competitive species or fully evolved species
+    const hasSets = Object.keys(smogonSets).length > 0;
+    const isFullyEvolved = tags.includes('fully_evolved');
+    if (hasSets || isFullyEvolved) {
+      await this.saveRAGDocument(name, gen, types, abilitiesList, baseStats, smogonSets, setsDetails, smogonAnalyses, evolutionChain, learnset, tags);
+    }
   }
 
   private async saveRAGDocument(name: string, gen: number, types: string[], abilities: string[], stats: Record<string, number>, sets: object, details: string, analysis: Record<string, string | undefined>, evo: string[], moves: string[], tags: string[]): Promise<void> {

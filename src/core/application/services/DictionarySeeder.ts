@@ -45,16 +45,6 @@ export class DictionarySeeder {
         };
 
         await this.repository.upsertItem(payload);
-
-        const docText = `Item: ${item.name}. Description: ${description}. Short description: ${item.shortDesc || ''}. Generation: ${item.gen}.`;
-        const vector = await this.embeddingService.embedText(docText);
-
-        await this.repository.saveKnowledgeDocument({
-          docType: 'item',
-          content: docText,
-          metadata: { id: item.id, name: item.name, gen: item.gen },
-          embeddingVector: vector
-        });
       } catch (error) {
         this.logger.error(`Error procesando objeto ${item.name}`, error);
       }
@@ -81,16 +71,6 @@ export class DictionarySeeder {
         };
 
         await this.repository.upsertAbility(payload);
-
-        const docText = `Ability: ${ability.name}. Description: ${description}. Short description: ${ability.shortDesc || ''}. Generation: ${ability.gen}.`;
-        const vector = await this.embeddingService.embedText(docText);
-
-        await this.repository.saveKnowledgeDocument({
-          docType: 'ability',
-          content: docText,
-          metadata: { name: ability.name, gen: ability.gen },
-          embeddingVector: vector
-        });
       } catch (error) {
         this.logger.error(`Error procesando habilidad ${ability.name}`, error);
       }
@@ -122,16 +102,6 @@ export class DictionarySeeder {
         };
 
         await this.repository.upsertMove(payload);
-
-        const docText = `Move: ${move.name}. Type: ${move.type}. Category: ${move.category}. Base Power: ${move.basePower}. Accuracy: ${move.accuracy}. Description: ${description}. Priority: ${move.priority}. Target: ${move.target}.`;
-        const vector = await this.embeddingService.embedText(docText);
-
-        await this.repository.saveKnowledgeDocument({
-          docType: 'move',
-          content: docText,
-          metadata: { name: move.name, type: move.type, category: move.category, basePower: move.basePower },
-          embeddingVector: vector
-        });
       } catch (error) {
         this.logger.error(`Error procesando movimiento ${move.name}`, error);
       }

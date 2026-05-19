@@ -114,7 +114,7 @@ export async function generateTeamWithGemini(
       } else if (options.format === "smogon-ubers") {
         constraintsPrompt += "Debes diseñar el equipo para Smogon Singles Ubers (Generation 9). Se permiten los Pokémon más poderosos y restringidos del juego sin restricciones de nivel de poder (ej. Calyrex-Shadow, Koraidon, Miraidon). Ten en cuenta que el clima/terreno es dominante (Koraidon, Kyogre, Miraidon) y debes controlarlo o responder a él.";
       } else if (options.format === "smogon-uu") {
-        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles UU (Underused, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
+        constraintsPrompt += "Debes diseñar el equipo para Smogon Singles UU (Underused, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) and un control de velocidad (Choice Scarf o revenge killer rápido).";
       } else if (options.format === "smogon-ru") {
         constraintsPrompt += "Debes diseñar el equipo para Smogon Singles RU (Rarely Used, Generation 9). Están prohibidos todos los Pokémon de las tiers superiores (OU, UU y Ubers). Debes incluir obligatoriamente un limpiador de Hazards (Defog, Rapid Spin, Mortal Spin) y un control de velocidad (Choice Scarf o revenge killer rápido).";
       } else if (options.format === "smogon-nu") {
@@ -125,6 +125,66 @@ export async function generateTeamWithGemini(
         constraintsPrompt += "Debes diseñar el equipo para Smogon Little Cup (Generation 9). Todos los Pokémon del equipo deben ser obligatoriamente de primera etapa evolutiva aptos para el formato (ej. Gligar, Foongus, Mienfoo, Pawniard, Tinkatink, etc.) y estar en su forma básica no evolucionada. Como regla especial de Little Cup, todos los Pokémon deben ser exactamente de Nivel 5 (debes establecer 'level: 5' para todos los miembros). Es crítico equipar 'Eviolite' (Mineral Evolutivo) o 'Berry Juice' (Zumo de Baya) en tus Pokémon.";
       } else if (options.format === "smogon-doubles-ou") {
         constraintsPrompt += "Debes diseñar el equipo para Smogon Doubles OU (Generation 9). Formato de dobles competitivo de Smogon con su propia lista de prohibiciones.";
+      } else if (options.format === "gen9nationaldex") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex OU (Generation 9). Este formato permite usar Megaevoluciones, Movimientos Z, Reversión Primigenia y todos los Pokémon históricamente disponibles (incluidos los eliminados en la Generación 9). El Teracristal está completamente prohibido en National Dex OU de acuerdo a las últimas regulaciones de Smogon. Es crítico balancear el control de Hazards (Rapid Spin/Defog/Mortal Spin) y tener sinergias potentes que involucren una Mega Evolución única.";
+      } else if (options.format === "gen9nationaldexubers") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex Ubers. Un formato extremadamente poderoso donde se permiten los Pokémon más destructivos de la historia de la saga con sus mecánicas heredadas completas (Mega-Rayquaza, Calyrex-Shadow, Zacian-Crowned, etc.) incluyendo Megas, Movimientos Z, Teracristalización y Reversión Primigenia sin límites de nivel de poder.";
+      } else if (options.format === "gen9nationaldexuu") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex UU (Underused). Se permiten todas las mecánicas heredadas (Megas, Movimientos Z) pero están prohibidos todos los Pokémon de las tiers superiores (National Dex OU y Ubers). Asegura un limpiador de Hazards y un atacante principal bien definido.";
+      } else if (options.format === "gen9nationaldexru") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex RU (Rarely Used). Tier inferior que permite el uso de Megas y Movimientos Z con Pokémon menos frecuentes pero sumamente interesantes y balanceados. Asegura sinergias de tipos y control del ritmo de combate.";
+      } else if (options.format === "gen9nationaldexmonotype") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex Monotype. Todos los Pokémon del equipo deben compartir obligatoriamente exactamente un tipo elemental común (primario o secundario) y se permiten mecánicas heredadas (Megaevolución y Movimientos Z) aplicadas a ese tipo común.";
+      } else if (options.format === "gen9nationaldexdoubles") {
+        constraintsPrompt += "Debes diseñar el equipo para Smogon National Dex Doubles. Este formato permite usar Megaevoluciones, Movimientos Z, Reversión Primigenia y todos los Pokémon históricamente disponibles en combates de dobles de National Dex. Asegura sinergias potentes de dobles, control de velocidad (como Tailwind o Trick Room) y excelente coherencia ofensiva/defensiva.";
+      }
+    }
+    if (options.customRules) {
+      const rules = options.customRules;
+      constraintsPrompt += `\n- REGLAS DE FORMATO PERSONALIZADO ACTIVO:`;
+      if (rules.speciesClause) {
+        constraintsPrompt += `\n  * Species Clause: No puedes tener Pokémon duplicados de la misma especie.`;
+      }
+      if (rules.itemClause) {
+        constraintsPrompt += `\n  * Item Clause: No puedes tener dos Pokémon con el mismo objeto equipado.`;
+      }
+      if (rules.allowMega !== undefined) {
+        if (!rules.allowMega) {
+          constraintsPrompt += `\n  * Mega Evolución PROHIBIDA: Ningún Pokémon debe llevar Mega Piedra u Orbe Primigenio.`;
+        } else {
+          constraintsPrompt += `\n  * Mega Evolución PERMITIDA: Puedes usar Mega Piedras.`;
+        }
+      }
+      if (rules.allowZMove !== undefined) {
+        if (!rules.allowZMove) {
+          constraintsPrompt += `\n  * Movimientos Z PROHIBIDOS: Ningún Pokémon debe llevar un Cristal Z.`;
+        } else {
+          constraintsPrompt += `\n  * Movimientos Z PERMITIDOS: Puedes usar Cristales Z.`;
+        }
+      }
+      if (rules.allowTera !== undefined) {
+        if (!rules.allowTera) {
+          constraintsPrompt += `\n  * Teracristalización PROHIBIDA: Ningún Pokémon puede teracristalizar (los sets no deben depender de Teratipos especiales, de preferencia teratipos base).`;
+        } else {
+          constraintsPrompt += `\n  * Teracristalización PERMITIDA: Elige el mejor tipo Teracristal competitivo.`;
+        }
+      }
+      if (rules.minLevel !== undefined && rules.maxLevel !== undefined) {
+        constraintsPrompt += `\n  * Nivel de Pokémon: Todos los Pokémon deben estar exactamente entre Nivel ${rules.minLevel} y Nivel ${rules.maxLevel}. Ajusta el atributo 'level' de cada Pokémon acorde a esto.`;
+      }
+      if (rules.bans) {
+        if (rules.bans.pokemon && rules.bans.pokemon.length > 0) {
+          constraintsPrompt += `\n  * POKÉMON PROHIBIDOS (BANEADOS): [${rules.bans.pokemon.join(", ")}].`;
+        }
+        if (rules.bans.items && rules.bans.items.length > 0) {
+          constraintsPrompt += `\n  * OBJETOS PROHIBIDOS (BANEADOS): [${rules.bans.items.join(", ")}].`;
+        }
+        if (rules.bans.moves && rules.bans.moves.length > 0) {
+          constraintsPrompt += `\n  * MOVIMIENTOS PROHIBIDOS (BANEADOS): [${rules.bans.moves.join(", ")}].`;
+        }
+        if (rules.bans.abilities && rules.bans.abilities.length > 0) {
+          constraintsPrompt += `\n  * HABILIDADES PROHIBIDAS (BANEADAS): [${rules.bans.abilities.join(", ")}].`;
+        }
       }
     }
     if (options.archetype) {
@@ -167,6 +227,38 @@ export async function generateTeamWithGemini(
         constraintsPrompt += "Están COMPLETAMENTE PROHIBIDOS todos los Pokémon Singulares/Míticos (ej. Mew, Celebi, Jirachi, Deoxys, Darkrai, Arceus, Diancie, Hoopa, Volcanion, Magearna, Marshadow, Zeraora, Meltan, Melmetal, Zarude, Pecharunt). ";
       }
     }
+    if (options.metaMode) {
+      constraintsPrompt += `\n- RIGIDEZ DE META / MODO DE CONSTRUCCIÓN: "${options.metaMode}". `;
+      if (options.metaMode === "meta") {
+        constraintsPrompt += "Debes ser sumamente estricto y riguroso con el metagame de alto nivel de torneos. Utiliza únicamente Pokémon tier S/A dominantes en Showdown y campeonatos mundiales, con reparticiones de EVs optimizadas (ej. spreads detallados de supervivencia en lugar de solo 252/252/4 genéricos cuando sea viable para maximizar eficiencia), habilidades competitivas de primer nivel, e ítems óptimos y definidores del meta.";
+      } else if (options.metaMode === "optimized") {
+        constraintsPrompt += "Diseña un equipo altamente competitivo, funcional e impecablemente optimizado en sus sets, pero con mayor flexibilidad para habilitar combinaciones y sinergias creativas de cores no convencionales.";
+      } else if (options.metaMode === "casual") {
+        constraintsPrompt += "Prioriza divertirte con la idea conceptual o tema meme solicitado por el usuario (ej. 'equipo de pulpos', 'meme team', 'mono-color', etc.). Puedes usar Pokémon de tiers bajas o inusuales para satisfacer el tema, pero sus sets de movimientos, habilidades y reparticiones de EVs/IVs deben ser 100% legales y mecánicamente coherentes para poder batallar de forma lógica.";
+      } else {
+        constraintsPrompt += "Balancea el metagame competitivo actual con flexibilidad general de acuerdo a la solicitud del usuario.";
+      }
+    }
+    if (options.currentTeam && options.currentTeam.length > 0) {
+      constraintsPrompt += `\n\n### ESTADO ACTUAL DEL EQUIPO A REFINAR:
+A continuación se muestra el equipo estructurado que ya has generado previamente:
+${JSON.stringify(options.currentTeam, null, 2)}
+
+`;
+      if (options.lockedSlots && options.lockedSlots.length > 0) {
+        constraintsPrompt += `- SLOTS BLOQUEADOS (LOCKED SLOTS): Los Pokémon en los índices [${options.lockedSlots.join(", ")}] (0-indexed) ESTÁN TOTALMENTE BLOQUEADOS y su set completo (especie, objeto, habilidad, naturaleza, movimientos, EVs, IVs, teraType, etc.) DEBE SER PRESERVADO EXACTAMENTE IGUAL SIN NINGÚN CAMBIO NI MODIFICACIÓN.
+`;
+        options.lockedSlots.forEach((slotIdx) => {
+          const pk = options.currentTeam![slotIdx];
+          if (pk) {
+            constraintsPrompt += `  * Ranura ${slotIdx} (${pk.species}): Debe conservarse 100% idéntico.\n`;
+          }
+        });
+      }
+      if (options.refinementPrompt) {
+        constraintsPrompt += `\n- INSTRUCCIÓN DE REFINAMIENTO DEL USUARIO: "${options.refinementPrompt}". Modifica y optimiza el equipo incorporando esta petición únicamente en los Pokémon de las ranuras que NO están bloqueadas. El resto de las ranuras no bloqueadas pueden ser re-diseñadas para mantener o maximizar la sinergia general del equipo.`;
+      }
+    }
   }
 
   const prompt = `
@@ -181,13 +273,25 @@ ${ragContext}
 "${userPrompt}"
 ${constraintsPrompt}
 
-### REGLAS ESTRICTAS:
+### REGLAS ESTRICTAS Y PRE-VALIDACIÓN OBLIGATORIA:
 1. DEBES devolver estrictamente un objeto JSON que siga el esquema requerido.
-2. NUNCA inventes movimientos (moves) o habilidades que el Pokémon no pueda aprender legalmente en el juego. Usa el contexto RAG para verificar legalidad.
+2. NUNCA inventes movimientos o habilidades que el Pokémon no pueda aprender legalmente en el juego. Usa el contexto RAG para verificar la legalidad.
 3. Asegúrate de que los EVs sumen un máximo de 508.
 4. Escoge naturalezas que tengan sentido competitivo (ej. No pongas Jolly a un atacante especial).
 5. No devuelvas ningún texto fuera del JSON. El sistema intentará hacer JSON.parse() de tu respuesta directamente.
 6. Calcula con máxima precisión el 'synergyScore' (0-100) y el 'synergyReason' para cada miembro del equipo basándote en estadísticas de co-ocurrencia de Smogon RAG y coberturas defensivas/ofensivas.
+7. EVITA ILEGALIDADES BINARIAS Y ADVERTENCIAS DEL VALIDADOR EN TU GENERACIÓN:
+   - Un Pokémon con Assault Vest (Chaleco Asalto) NO PUEDE llevar ningún movimiento de estado (como Protect, Swords Dance, Will-O-Wisp, Tailwind, Spore, etc.). Todos sus 4 movimientos deben ser de categoría física o especial (daño directo).
+   - Un Pokémon con un objeto Choice ("Choice Specs", "Choice Band", "Choice Scarf") NO DEBE llevar movimientos de protección (Protect/Detect) ni de danza/boosteo (como Swords Dance, Nasty Plot), ya que se quedaría bloqueado en batalla.
+   - Evita la Guerra Civil de Climas: No mezcles habilidades de clima opuestas (como Drizzle con Drought) en el mismo equipo si es de Dobles/VGC, a menos que sea Anything Goes o el usuario lo pida.
+   - Evita la prioridad en Terreno Psíquico: Si tu equipo activa Terreno Psíquico, no pongas movimientos de prioridad como Fake Out (Sorpresa) en Pokémon terrestres.
+   - Coberturas Elementales: Asegúrate de no tener 3 o más Pokémon débiles al mismo tipo elemental sin tener al menos una inmunidad (habilidad o tipo) activa en el equipo para absorberlo.
+   - Para formatos de DOBLES/VGC:
+     * El equipo DEBE contar con al menos una forma de Control de Velocidad (como Tailwind, Trick Room, Icy Wind, Electroweb).
+     * Se recomienda fuertemente que al menos 3 Pokémon lleven Protect o Detect.
+   - Para formatos de SINGLES (Smogon OU, UU, RU, etc.):
+     * Es OBLIGATORIO contar con al menos un removedor de trampas/Hazards (como Rapid Spin, Defog, Mortal Spin, Tidy Up).
+     * El equipo debe contar con un revenge-killer rápido (Velocidad Base >= 110) o un usuario de Choice Scarf.
 `;
 
   let lastError: Error | null = null;

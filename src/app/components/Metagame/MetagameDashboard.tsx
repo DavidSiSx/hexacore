@@ -14,8 +14,13 @@ interface MetagameDashboardProps {
 const FORMATS = [
   { id: "gen9ou", name: "Gen 9 OU", color: "bg-blue-500" },
   { id: "gen9uu", name: "Gen 9 UU", color: "bg-green-500" },
-  { id: "gen9uber", name: "Gen 9 Ubers", color: "bg-purple-500" },
+  { id: "gen9ubers", name: "Gen 9 Ubers", color: "bg-purple-500" },
   { id: "gen9vgc2025regg", name: "VGC 2025", color: "bg-orange-500" },
+  { id: "gen9nationaldex", name: "NatDex OU", color: "bg-red-500" },
+  { id: "gen9nationaldexubers", name: "NatDex Ubers", color: "bg-pink-500" },
+  { id: "gen9nationaldexuu", name: "NatDex UU", color: "bg-teal-500" },
+  { id: "gen9nationaldexru", name: "NatDex RU", color: "bg-indigo-500" },
+  { id: "gen9nationaldexmonotype", name: "NatDex Monotype", color: "bg-yellow-600" },
 ];
 
 // Built-in i18n dictionary
