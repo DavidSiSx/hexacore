@@ -14,6 +14,7 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showQuartzModal, setShowQuartzModal] = useState(false);
   const { currentTheme, activeTheme, setTheme } = useTheme();
   const isEs = lang === "es";
 
@@ -88,7 +89,13 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
             {THEMES_LIST.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTheme(t.id)}
+                onClick={() => {
+                  if (t.id === "quartz") {
+                    setShowQuartzModal(true);
+                  } else {
+                    setTheme(t.id);
+                  }
+                }}
                 title={t.name}
                 className={`w-4 h-4 border-2 transition-all hover:scale-110 active:scale-90 ${
                   currentTheme === t.id ? `${activeTheme.borderClass} scale-110` : "border-zinc-700 opacity-50 hover:opacity-100"
@@ -105,7 +112,11 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
             <button
               onClick={() => {
                 const idx = THEMES_LIST.findIndex(t => t.id === currentTheme);
-                const nextIdx = (idx + 1) % THEMES_LIST.length;
+                let nextIdx = (idx + 1) % THEMES_LIST.length;
+                if (THEMES_LIST[nextIdx].id === "quartz") {
+                  setShowQuartzModal(true);
+                  nextIdx = (nextIdx + 1) % THEMES_LIST.length;
+                }
                 setTheme(THEMES_LIST[nextIdx].id);
               }}
               className={`p-2 border-2 ${activeTheme.borderClass} bg-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all`}
@@ -210,7 +221,13 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
               {THEMES_LIST.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => { setTheme(t.id); }}
+                  onClick={() => {
+                    if (t.id === "quartz") {
+                      setShowQuartzModal(true);
+                    } else {
+                      setTheme(t.id);
+                    }
+                  }}
                   className={`py-2 text-[9px] font-black uppercase border-2 transition-all ${
                     currentTheme === t.id 
                       ? `${activeTheme.borderClass} ${activeTheme.accentClass} shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]` 
@@ -229,6 +246,36 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
               {isEs ? "IDIOMA" : "LANGUAGE"}
             </span>
             <LangToggle currentLang={lang} />
+          </div>
+        </div>
+      )}
+      {/* Modal Brutalista - Tema Cuarzo en Desarrollo */}
+      {showQuartzModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-[#DFE104] text-black border-4 border-black p-6 w-full max-w-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col gap-4">
+            <button
+              onClick={() => setShowQuartzModal(false)}
+              className="absolute top-3 right-3 bg-black text-[#DFE104] border-2 border-black p-1 hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer font-bold text-xs"
+            >
+              ✕
+            </button>
+            <div className="flex flex-col gap-2 mt-2">
+              <h4 className="text-xl font-black uppercase tracking-tighter leading-none">
+                Tema en Desarrollo
+              </h4>
+              <p className="text-xs font-bold uppercase leading-tight text-black/85">
+                El tema "Minimalismo Cuarzo" se encuentra actualmente en fase de optimización y pruebas de estabilidad.
+              </p>
+              <p className="text-[10px] font-black uppercase text-black/60 bg-black/10 p-2 border border-black/20">
+                ¡Próximamente estará disponible en la versión Hexacore Pro!
+              </p>
+            </div>
+            <button
+              onClick={() => setShowQuartzModal(false)}
+              className="mt-2 bg-black text-white hover:bg-zinc-900 border-2 border-black py-2 text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] cursor-pointer"
+            >
+              ENTENDIDO
+            </button>
           </div>
         </div>
       )}

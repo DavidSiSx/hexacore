@@ -87,8 +87,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("hexacore_global_theme") as ThemeId;
-    if (saved && THEMES_LIST.some(t => t.id === saved)) {
+    if (saved && saved !== "quartz" && THEMES_LIST.some(t => t.id === saved)) {
       setCurrentThemeState(saved);
+    } else if (saved === "quartz") {
+      setCurrentThemeState("neon");
+      localStorage.setItem("hexacore_global_theme", "neon");
     }
   }, []);
 
