@@ -12,6 +12,10 @@
 </p>
 
 <p align="center">
+  <img src="public/images/Buildergif.gif" alt="Hexacore Team Builder Demo" width="800" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs" />
   <img src="https://img.shields.io/badge/PostgreSQL-pgvector-316192?logo=postgresql" />
   <img src="https://img.shields.io/badge/AI-Gemini_2.5-4285F4?logo=google" />
@@ -74,10 +78,10 @@ Hexacore is designed following a **Screaming / Clean Architecture** pattern, enf
 
 ---
 
-### Vibe Coding & Agentic Assistance (Antigravity)
+### AI-Assisted Iterative Development & Agentic Workflows
 
-* **Vibe Coding Flow**: Several modules, including database audits, testing suites, and manual construction states, were developed using a dynamic "vibe coding" philosophy, letting the architecture shape itself iteratively based on real-time feedback loop.
-* **Powered by Antigravity**: The final QA rework, packages uncoupling, Vitest setup, GitHub Actions CI integration, and Phase 4 interactive manual team builder implementation were successfully driven, coded, and verified by **Antigravity** (Google DeepMind's agentic AI coding assistant).
+* **AI-Driven Iteration**: Several modules, including database audits, testing suites, and manual construction states, were developed using an agile, AI-assisted feedback loop. This allowed the architecture to evolve dynamically while maintaining strict structural integrity.
+* **Agentic QA & CI/CD Integration**: The final QA rework, packages uncoupling, Vitest setup, and GitHub Actions CI integration were accelerated and verified utilizing Google DeepMind's Antigravity assistant, demonstrating a modern approach to AI-paired programming and code validation.
 
 ---
 
@@ -211,10 +215,10 @@ Hexacore sigue un patrón de **Arquitectura Limpia / Screaming Architecture**, g
 
 ---
 
-### Vibe Coding y Asistencia Agéntica (Antigravity)
+### Desarrollo Iterativo Asistido por IA y Flujos Agénticos
 
-* **Flujo de Vibe Coding**: Diversos componentes y módulos (como scripts de auditoría, suites de pruebas y control manual de estados) fueron desarrollados de manera ágil bajo la filosofía de "vibe coding", permitiendo que el diseño técnico evolucione a través de iteraciones rápidas.
-* **Desarrollado con Antigravity**: El saneamiento final de calidad, desacoplamiento de dependencias fantasma, configuración de Vitest, la tubería de CI con GitHub Actions y la implementación interactiva de la Fase 4 para construir equipos desde cero fueron conducidos, programados y validados íntegramente por **Antigravity** (el asistente de programación agéntico con IA de Google DeepMind).
+* **Iteración guiada por IA**: Diversos módulos (como auditorías de base de datos, suites de pruebas y control manual de estados) fueron desarrollados de manera ágil bajo un ciclo de retroalimentación asistido por IA. Esto permitió que la arquitectura evolucionara dinámicamente manteniendo una rigurosa integridad estructural.
+* **Integración de QA Agéntico y CI/CD**: El saneamiento final de calidad, desacoplamiento de dependencias fantasma, configuración de Vitest y la tubería de CI con GitHub Actions fueron acelerados y validados utilizando el asistente Antigravity de Google DeepMind, demostrando un enfoque moderno de programación en pareja con IA y validación de código.
 
 ---
 
