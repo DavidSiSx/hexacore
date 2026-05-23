@@ -70,6 +70,13 @@ Hexacore is designed following a **Screaming / Clean Architecture** pattern, enf
 
 ---
 
+### Vibe Coding & Agentic Assistance (Antigravity)
+
+* **Vibe Coding Flow**: Several modules, including database audits, testing suites, and manual construction states, were developed using a dynamic "vibe coding" philosophy, letting the architecture shape itself iteratively based on real-time feedback loop.
+* **Powered by Antigravity**: The final QA rework, packages uncoupling, Vitest setup, GitHub Actions CI integration, and Phase 4 interactive manual team builder implementation were successfully driven, coded, and verified by **Antigravity** (Google DeepMind's agentic AI coding assistant).
+
+---
+
 ### Technology Stack
 
 * **Core**: Next.js 16.2 (App Router + Server Actions), React 19.2, TypeScript 5.
@@ -143,6 +150,13 @@ Hexacore sigue un patrón de **Arquitectura Limpia / Screaming Architecture**, g
 
 3. **Refinamiento Incremental**:
    * Permite fijar Pokémon específicos mediante candados (locks). El motor de IA respeta los candados y actualiza solo las ranuras desbloqueadas garantizando sinergias ideales.
+
+---
+
+### Vibe Coding y Asistencia Agéntica (Antigravity)
+
+* **Flujo de Vibe Coding**: Diversos componentes y módulos (como scripts de auditoría, suites de pruebas y control manual de estados) fueron desarrollados de manera ágil bajo la filosofía de "vibe coding", permitiendo que el diseño técnico evolucione a través de iteraciones rápidas.
+* **Desarrollado con Antigravity**: El saneamiento final de calidad, desacoplamiento de dependencias fantasma, configuración de Vitest, la tubería de CI con GitHub Actions y la implementación interactiva de la Fase 4 para construir equipos desde cero fueron conducidos, programados y validados íntegramente por **Antigravity** (el asistente de programación agéntico con IA de Google DeepMind).
 
 ---
 
