@@ -179,65 +179,28 @@ export default function TeamPokemonCard({ pokemon, index, onChange, isLocked, on
       <div className={`border-4 ${isLocked ? "border-amber-500 shadow-[6px_6px_0px_#d97706]" : `${activeTheme.borderClass} shadow-[4px_4px_0px_#000000]`} ${activeTheme.cardBgClass} p-5 flex flex-col gap-4 group 
                        hover:translate-x-1 hover:-translate-y-1 transition-all relative`}>
         
-        {/* Header: Sprite + Name + Role con Acciones integradas en flujo */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 pb-4 border-dashed border-zinc-800">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="relative w-16 h-16 shrink-0">
-              <SpriteImg
-                species={pokemon.species}
-                width={64}
-                height={64}
-                className="drop-shadow-md group-hover:scale-110 transition-transform"
-              />
-              <span className={`absolute -top-2 -left-2 w-6 h-6 bg-[var(--accent)] text-[var(--accent-foreground)]
-                              text-[10px] font-black flex items-center justify-center border-2 border-[var(--background)]`}>
-                {index + 1}
-              </span>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-lg font-black uppercase tracking-tighter ${activeTheme.textMainClass} truncate`}>
-                {pokemon.species}
-              </h3>
-              <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} truncate`}>
-                {pokemon.role}
-              </p>
-            </div>
+        {/* Header: Sprite + Name + Role */}
+        <div className="flex items-center gap-4 border-b-2 pb-4 border-dashed border-zinc-800">
+          <div className="relative w-16 h-16 shrink-0">
+            <SpriteImg
+              species={pokemon.species}
+              width={64}
+              height={64}
+              className="drop-shadow-md group-hover:scale-110 transition-transform"
+            />
+            <span className={`absolute -top-2 -left-2 w-6 h-6 bg-[var(--accent)] text-[var(--accent-foreground)]
+                            text-[10px] font-black flex items-center justify-center border-2 border-[var(--background)]`}>
+              {index + 1}
+            </span>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center z-10 sm:self-start shrink-0">
-            {onToggleLock && (
-              <button
-                onClick={onToggleLock}
-                className={`p-1.5 border-2 ${
-                  isLocked 
-                    ? "bg-amber-500/20 text-amber-400 border-amber-500" 
-                    : `${activeTheme.borderClass} ${activeTheme.cardBgClass} hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/50`
-                } text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all`}
-                title={isLocked ? "Desbloquear ranura" : "Bloquear ranura para que no sea cambiada por la IA"}
-              >
-                {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5" />}
-                {isLocked ? "Bloqueado" : "Bloquear"}
-              </button>
-            )}
-            <button
-              onClick={() => setShowDamageCalc(!showDamageCalc)}
-              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
-                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
-                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              {showDamageCalc ? "Ocultar Daño" : "Simular Daño"}
-            </button>
-            <button
-              onClick={() => setIsEditing(true)}
-              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
-                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
-                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
-            >
-              <Settings className="w-3.5 h-3.5" />
-              Editar
-            </button>
+          <div className="flex-1 min-w-0">
+            <h3 className={`text-lg font-black uppercase tracking-tighter ${activeTheme.textMainClass} truncate`}>
+              {pokemon.species || "VACÍO"}
+            </h3>
+            <p className={`text-[10px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} truncate`}>
+              {pokemon.role || "SIN ROL ASIGNADO"}
+            </p>
           </div>
         </div>
 
@@ -318,7 +281,46 @@ export default function TeamPokemonCard({ pokemon, index, onChange, isLocked, on
           )}
         </div>
 
-        {/* Panel de Simulación de Daño se eliminó de aquí para mostrarse en modal */}
+        {/* Actions Row at the Bottom */}
+        <div className={`flex flex-wrap gap-2 items-center justify-between mt-auto pt-3 border-t-2 border-dashed ${activeTheme.borderClass}`}>
+          {onToggleLock ? (
+            <button
+              onClick={onToggleLock}
+              className={`p-1.5 border-2 ${
+                isLocked 
+                  ? "bg-amber-500/20 text-amber-400 border-amber-500" 
+                  : `${activeTheme.borderClass} ${activeTheme.cardBgClass} hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/50`
+              } text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all`}
+              title={isLocked ? "Desbloquear ranura" : "Bloquear ranura para que no sea cambiada por la IA"}
+            >
+              {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5" />}
+              {isLocked ? "Bloqueado" : "Bloquear"}
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowDamageCalc(!showDamageCalc)}
+              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
+                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              {showDamageCalc ? "Ocultar Daño" : "Simular Daño"}
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className={`p-1.5 border-2 ${activeTheme.borderClass} ${activeTheme.cardBgClass}
+                         hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:border-[var(--accent)]
+                         text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer`}
+            >
+              <Settings className="w-3.5 h-3.5" />
+              Editar
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* MODAL DE SIMULACIÓN DE DAÑO (CÁLCULO DEL META) */}

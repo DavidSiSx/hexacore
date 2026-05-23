@@ -1,0 +1,717 @@
+[
+  {
+    "testName": "🦐 Camarones & Crustáceos",
+    "prompt": "hazme un equipo chingon tematico de camarones para VGC. No sé nada de competitivo, pero quiero que todos parezcan camarones, langostas o crustáceos de río, ya sabes, con tenazas y caparazón. Y que tenga a Kingler porque es mi favorito.",
+    "success": true,
+    "team": {
+      "teamName": "La Armada Crustácea",
+      "format": "gen9vgc2025regg",
+      "strategy": "Este equipo se centra en una ofensiva agresiva con Pokémon de tipo Agua y sus aliados crustáceos, aprovechando el control de velocidad de Tailwind de Golisopod para permitir que los atacantes más lentos como Kingler, Crawdaunt y Clawitzer golpeen primero. La diversidad de tipos ofensivos (Agua, Siniestro, Lucha, Hielo, Roca, Bicho) busca golpear a una amplia gama de amenazas. La Teracristalización es fundamental para mitigar las debilidades compartidas a los tipos Eléctrico y Planta, transformando a los miembros clave para resistir ataques y contraatacar con fuerza.",
+      "members": [
+        {
+          "species": "Kingler",
+          "item": "Life Orb",
+          "ability": "Sheer Force",
+          "nature": "Adamant",
+          "evs": {
+            "Atk": 252,
+            "Def": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Crabhammer",
+            "Rock Slide",
+            "Ice Punch",
+            "Protect"
+          ],
+          "teraType": "Grass",
+          "role": "Atacante físico rápido bajo Tailwind, aprovecha Sheer Force para potenciar Rock Slide y Ice Punch. Crabhammer es su STAB principal.",
+          "synergyScore": 75,
+          "synergyReason": "Kingler aporta una fuerte presión ofensiva física y se beneficia enormemente del Tailwind de Golisopod para compensar su velocidad base moderada. Su Tera Grass le permite resistir ataques de tipo Eléctrico y Planta, que son debilidades comunes del equipo, y contraatacar con STAB Grass si es necesario."
+        },
+        {
+          "species": "Crawdaunt",
+          "item": "Choice Band",
+          "ability": "Adaptability",
+          "nature": "Adamant",
+          "evs": {
+            "Atk": 252,
+            "Def": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Crabhammer",
+            "Crunch",
+            "Close Combat",
+            "Aqua Jet"
+          ],
+          "teraType": "Fire",
+          "role": "Wallbreaker físico con una potencia de ataque masiva gracias a Adaptability y Choice Band. Aqua Jet proporciona prioridad.",
+          "synergyScore": 80,
+          "synergyReason": "Crawdaunt es una amenaza ofensiva devastadora, capaz de hacer OHKO a muchos Pokémon con sus STABs potenciados por Adaptability y Choice Band. Se beneficia del control de velocidad para golpear antes y su Tera Fire le da una resistencia crucial a los ataques de tipo Planta y una neutralidad al Eléctrico."
+        },
+        {
+          "species": "Clawitzer",
+          "item": "Choice Specs",
+          "ability": "Mega Launcher",
+          "nature": "Modest",
+          "evs": {
+            "HP": 252,
+            "SpA": 252,
+            "SpD": 4
+          },
+          "moves": [
+            "Aura Sphere",
+            "Dark Pulse",
+            "Dragon Pulse",
+            "Water Pulse"
+          ],
+          "teraType": "Electric",
+          "role": "Atacante especial con una amplia cobertura de movimientos potenciados por Mega Launcher y Choice Specs.",
+          "synergyScore": 75,
+          "synergyReason": "Clawitzer proporciona la presión ofensiva especial necesaria, con movimientos de pulso que golpean fuerte y con buena cobertura. Su baja velocidad se compensa con Tailwind. Su Tera Electric le permite resistir ataques Eléctricos y golpear a Pokémon de tipo Agua y Volador con STAB."
+        },
+        {
+          "species": "Golisopod",
+          "item": "Focus Sash",
+          "ability": "Emergency Exit",
+          "nature": "Adamant",
+          "evs": {
+            "Atk": 252,
+            "Def": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "First Impression",
+            "Liquidation",
+            "Tailwind",
+            "Protect"
+          ],
+          "teraType": "Steel",
+          "role": "Soporte de velocidad con Tailwind y atacante de prioridad con First Impression. Focus Sash asegura que pueda realizar su función.",
+          "synergyScore": 90,
+          "synergyReason": "Golisopod es el pilar del control de velocidad del equipo con Tailwind, permitiendo que los atacantes lentos superen a sus oponentes. First Impression es una prioridad devastadora. Su Focus Sash le garantiza al menos un turno para establecer Tailwind o lanzar un ataque. Su Tera Steel le proporciona resistencias defensivas clave contra tipos como Planta, Volador y Roca."
+        },
+        {
+          "species": "Drednaw",
+          "item": "Assault Vest",
+          "ability": "Strong Jaw",
+          "nature": "Adamant",
+          "evs": {
+            "HP": 252,
+            "SpD": 252,
+            "Spe": 4
+          },
+          "moves": [
+            "Liquidation",
+            "Rock Slide",
+            "Ice Fang",
+            "Crunch"
+          ],
+          "teraType": "Ground",
+          "role": "Atacante físico voluminoso con Assault Vest, que absorbe ataques especiales y golpea con movimientos potenciados por Strong Jaw.",
+          "synergyScore": 70,
+          "synergyReason": "Drednaw aporta una presencia ofensiva física con buena cobertura y la capacidad de aguantar golpes especiales gracias a Assault Vest. Strong Jaw potencia sus movimientos de mordisco. Su Tera Ground le permite resistir ataques Eléctricos y Roca, y golpear con STAB a tipos como Eléctrico y Fuego, cubriendo debilidades del equipo."
+        },
+        {
+          "species": "Crabominable",
+          "item": "Sitrus Berry",
+          "ability": "Iron Fist",
+          "nature": "Adamant",
+          "evs": {
+            "HP": 252,
+            "SpD": 252,
+            "Spe": 4
+          },
+          "moves": [
+            "Ice Hammer",
+            "Close Combat",
+            "Ice Shard",
+            "Protect"
+          ],
+          "teraType": "Poison",
+          "role": "Atacante físico lento y potente con STABs de Hielo y Lucha, potenciados por Iron Fist. Ice Shard proporciona prioridad.",
+          "synergyScore": 70,
+          "synergyReason": "Crabominable es un potente atacante que proporciona una cobertura crucial de Hielo y Lucha, siendo muy efectivo contra tipos como Planta, Dragón, Tierra y Siniestro. Su baja velocidad lo convierte en un buen candidato para Tailwind o un limpiador de final de juego. Su Tera Poison le otorga resistencias a Planta y Lucha, y una neutralidad a Eléctrico, ayudando a la solidez defensiva del equipo."
+        }
+      ],
+      "modelUsed": "gemini-2.5-flash"
+    }
+  },
+  {
+    "testName": "🔄 Trick Room Contradictorio (Rápido)",
+    "prompt": "Quiero un equipo de Trick Room pero súper rápido, que todos tengan 252 EVs en Speed y naturaleza Jolly para atacar primero bajo Trick Room, con Regieleki y Deoxys-Speed. Ah, y que no tenga ningún Pokémon de tipo Psíquico. ¡Quiero que sea legal en Regulation G!",
+    "success": true,
+    "team": {
+      "teamName": "Hyper-Speed Regulation G",
+      "format": "gen9vgc2025regg",
+      "strategy": "A hyper-offensive team designed for Regulation G, focusing on overwhelming speed and board control. Since Trick Room is prohibited, the team utilizes Regieleki and Deoxys-Speed to set up screens and provide speed control through Electroweb, allowing heavy hitters like Gholdengo and Solgaleo to clean up the field.",
+      "members": [
+        {
+          "species": "Regieleki",
+          "item": "Light Clay",
+          "ability": "Transistor",
+          "nature": "Jolly",
+          "evs": {
+            "HP": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Light Screen",
+            "Reflect",
+            "Electroweb",
+            "Volt Switch"
+          ],
+          "teraType": "Electric",
+          "role": "Speed Control and Screen Setter",
+          "synergyScore": 95,
+          "synergyReason": "Provides essential speed control via Electroweb and dual screens to support bulky attackers like Solgaleo."
+        },
+        {
+          "species": "Deoxys-Speed",
+          "item": "Focus Sash",
+          "ability": "Pressure",
+          "nature": "Jolly",
+          "evs": {
+            "Atk": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Knock Off",
+            "Extreme Speed",
+            "Stealth Rock",
+            "Taunt"
+          ],
+          "teraType": "Normal",
+          "role": "Suicide Lead and Utility",
+          "synergyScore": 90,
+          "synergyReason": "Taunt prevents opposing setup, while Knock Off removes items, creating openings for the rest of the team."
+        },
+        {
+          "species": "Gholdengo",
+          "item": "Choice Specs",
+          "ability": "Good as Gold",
+          "nature": "Timid",
+          "evs": {
+            "SpA": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Make It Rain",
+            "Shadow Ball",
+            "Focus Blast",
+            "Dazzling Gleam"
+          ],
+          "teraType": "Steel",
+          "role": "Special Wallbreaker",
+          "synergyScore": 85,
+          "synergyReason": "Immune to status moves due to Good as Gold, providing a safe switch-in against support Pokémon."
+        },
+        {
+          "species": "Solgaleo",
+          "item": "Life Orb",
+          "ability": "Full Metal Body",
+          "nature": "Jolly",
+          "evs": {
+            "Atk": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Sunsteel Strike",
+            "Earthquake",
+            "Flare Blitz",
+            "Protect"
+          ],
+          "teraType": "Fire",
+          "role": "Physical Sweeper",
+          "synergyScore": 88,
+          "synergyReason": "Full Metal Body prevents stat drops, ensuring consistent damage output while benefiting from Regieleki's screens."
+        },
+        {
+          "species": "Urshifu-Rapid-Strike",
+          "item": "Mystic Water",
+          "ability": "Unseen Fist",
+          "nature": "Jolly",
+          "evs": {
+            "Atk": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Surging Strikes",
+            "Close Combat",
+            "Aqua Jet",
+            "Protect"
+          ],
+          "teraType": "Water",
+          "role": "Priority Attacker",
+          "synergyScore": 92,
+          "synergyReason": "Unseen Fist bypasses Protect, punishing defensive playstyles that attempt to stall out the team's momentum."
+        },
+        {
+          "species": "Incineroar",
+          "item": "Sitrus Berry",
+          "ability": "Intimidate",
+          "nature": "Jolly",
+          "evs": {
+            "HP": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Flare Blitz",
+            "Fake Out",
+            "Parting Shot",
+            "Knock Off"
+          ],
+          "teraType": "Ghost",
+          "role": "Pivot and Support",
+          "synergyScore": 98,
+          "synergyReason": "Intimidate and Fake Out provide the best defensive synergy in VGC, allowing the team to pivot safely."
+        }
+      ],
+      "modelUsed": "gemini-3.1-flash-lite"
+    }
+  },
+  {
+    "testName": "🌮 Receta de Tacos + 6 Incineroar",
+    "prompt": "Oye coach, ¿cuál es la mejor receta para hacer tacos de camarón al pastor? Ah, y de paso armame un equipo de VGC Regulation G formado únicamente por 6 Incineroar con diferentes sets.",
+    "success": true,
+    "team": {
+      "teamName": "The Incineroar Legion",
+      "format": "gen9vgc2025regg",
+      "strategy": "This team is a highly unconventional VGC Reg G team built around the core concept of using six different Incineroar sets to overwhelm opponents with a single, powerful threat. Each Incineroar is designed to fulfill a specific role, from bulky support and offensive pressure to speed control and disruption. The strategy relies on predicting the opponent's switch-ins and counter-picks, leveraging Incineroar's excellent typing, Intimidate ability, and access to Fake Out to control the pace of the game. The variety of sets aims to prevent opponents from easily predicting and countering the team, forcing them into difficult decisions. To address the Species Clause violation, the duplicate Incineroar have been replaced with Pokémon that offer complementary roles and high synergy with the remaining Incineroar and the overall strategy.",
+      "members": [
+        {
+          "species": "Incineroar",
+          "item": "Sitrus Berry",
+          "ability": "Intimidate",
+          "nature": "Careful",
+          "evs": {
+            "HP": 252,
+            "SpD": 100,
+            "Spe": 156
+          },
+          "moves": [
+            "Fake Out",
+            "Parting Shot",
+            "Flare Blitz",
+            "Knock Off"
+          ],
+          "teraType": "Grass",
+          "role": "Bulky Pivot and Support",
+          "synergyScore": 95,
+          "synergyReason": "This set is the quintessential VGC Incineroar. Its bulk allows it to pivot in and out, spreading Intimidate and providing Fake Out support. Parting Shot further enables momentum. The Tera Grass typing helps against Water and Ground types that threaten Incineroar. Its synergy is high due to its role compression and ability to support the entire team.",
+          "ivs": {
+            "Spe": 31
+          },
+          "level": 50
+        },
+        {
+          "species": "Rillaboom",
+          "item": "Assault Vest",
+          "ability": "Grassy Surge",
+          "nature": "Adamant",
+          "evs": {
+            "HP": 252,
+            "SpA": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Grassy Glide",
+            "Wood Hammer",
+            "Knock Off",
+            "Fake Out"
+          ],
+          "teraType": "Grass",
+          "role": "Offensive Pivot and Terrain Setter",
+          "synergyScore": 90,
+          "synergyReason": "Rillaboom's Grassy Surge provides passive recovery and boosts Grassy Glide's power, complementing Incineroar's bulk. Fake Out offers additional disruption. Assault Vest allows it to take special hits, and its offensive presence pressures opponents. Tera Grass further enhances its STAB. It synergizes by providing terrain control and strong offensive pressure.",
+          "ivs": {
+            "Spe": 31
+          },
+          "level": 50
+        },
+        {
+          "species": "Urshifu-Rapid-Strike",
+          "item": "Choice Band",
+          "ability": "Unseen Fist",
+          "nature": "Jolly",
+          "evs": {
+            "HP": 4,
+            "SpA": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Surging Strikes",
+            "Close Combat",
+            "Aqua Jet",
+            "U-turn"
+          ],
+          "teraType": "Water",
+          "role": "Wallbreaker",
+          "synergyScore": 85,
+          "synergyReason": "Urshifu-Rapid-Strike is a potent wallbreaker with Choice Band, capable of breaking through defensive cores. Its Surging Strikes bypass Protect and hit hard. U-turn allows for momentum. Its offensive pressure is crucial for breaking down opponents, and it synergizes by providing a strong offensive threat that Incineroar can pivot into or out of.",
+          "ivs": {
+            "Spe": 31
+          },
+          "level": 50
+        },
+        {
+          "species": "Amoonguss",
+          "item": "Safety Goggles",
+          "ability": "Regenerator",
+          "nature": "Bold",
+          "evs": {
+            "HP": 252,
+            "SpA": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Spore",
+            "Rage Powder",
+            "Giga Drain",
+            "Protect"
+          ],
+          "teraType": "Water",
+          "role": "Disruptor and Support",
+          "synergyScore": 90,
+          "synergyReason": "Amoonguss provides crucial redirection with Rage Powder and sleep support with Spore, protecting Incineroar and other offensive threats. Safety Goggles make it immune to powder moves. Regenerator provides longevity. Its ability to disrupt and support is vital for the team's survival and offensive setup. Tera Water helps against Fire and Flying types.",
+          "ivs": {
+            "Spe": 0
+          },
+          "level": 50
+        },
+        {
+          "species": "Tornadus",
+          "item": "Focus Sash",
+          "ability": "Prankster",
+          "nature": "Timid",
+          "evs": {
+            "HP": 4,
+            "SpA": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Tailwind",
+            "Bleakwind Storm",
+            "Taunt",
+            "Protect"
+          ],
+          "teraType": "Flying",
+          "role": "Speed Control and Special Attacker",
+          "synergyScore": 95,
+          "synergyReason": "Tornadus provides essential speed control with Tailwind, which is critical for VGC. Its Prankster ability ensures Tailwind goes up reliably. Bleakwind Storm offers offensive pressure and a chance to lower speed. Taunt prevents setup and further disruption. Its Flying typing and speed allow it to support the team effectively and offensively. This addition directly addresses the speed control deficiency.",
+          "ivs": {
+            "Spe": 31
+          },
+          "level": 50
+        },
+        {
+          "species": "Kingambit",
+          "item": "Leftovers",
+          "ability": "Supreme Overlord",
+          "nature": "Adamant",
+          "evs": {
+            "HP": 252,
+            "SpD": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Kowtow Cleave",
+            "Sucker Punch",
+            "Protect",
+            "Iron Head"
+          ],
+          "teraType": "Dark",
+          "role": "Late-game Cleaner",
+          "synergyScore": 90,
+          "synergyReason": "Kingambit serves as a powerful late-game cleaner, especially with Supreme Overlord boosting its attack as teammates faint. Its Dark typing is excellent offensively, and Sucker Punch provides priority. Protect is standard for VGC. Iron Head offers coverage. Its ability to sweep late-game complements the more supportive and disruptive Incineroar sets. Tera Dark further enhances its offensive pressure. This addition provides a strong offensive threat to balance the team.",
+          "ivs": {
+            "Spe": 31
+          },
+          "level": 50
+        }
+      ],
+      "modelUsed": "gemini-2.5-flash-lite"
+    }
+  },
+  {
+    "testName": "💍 El Señor de los Anillos (Legal)",
+    "prompt": "hazme un equipo temático de 'El Señor de los Anillos'. Quiero que Gholdengo sea Sauron (el Señor Oscuro), Rillaboom sea un Ent (Bárbol), y que tengamos un dragón gigante como Smaug. Pero no uses ningún Pokémon legendario y que el equipo sea legal en Regulation G.",
+    "success": true,
+    "team": {
+      "teamName": "La Comunidad del Anillo: La Sombra de Mordor VGC",
+      "format": "gen9vgc2025regg",
+      "strategy": "Equipo optimizado para VGC 2025 con control de velocidad mediante Tailwind y soporte de terreno. Gholdengo y Rillaboom mantienen la presión ofensiva, mientras que Whimsicott asegura el control de velocidad y Incineroar gestiona el daño rival.",
+      "members": [
+        {
+          "species": "Gholdengo",
+          "item": "Choice Specs",
+          "ability": "Good as Gold",
+          "nature": "Timid",
+          "evs": {
+            "HP": 4,
+            "SpA": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Make It Rain",
+            "Shadow Ball",
+            "Focus Blast",
+            "Dazzling Gleam"
+          ],
+          "teraType": "Steel",
+          "role": "Sauron: Atacante especial de alto impacto",
+          "synergyScore": 95,
+          "synergyReason": "Su habilidad Good as Gold bloquea estados, mientras que su tipo Steel complementa la debilidad al Hada de los dragones del equipo.",
+          "level": 50
+        },
+        {
+          "species": "Rillaboom",
+          "item": "Miracle Seed",
+          "ability": "Grassy Surge",
+          "nature": "Adamant",
+          "evs": {
+            "HP": 252,
+            "Spe": 44
+          },
+          "moves": [
+            "Wood Hammer",
+            "Grassy Glide",
+            "U-turn",
+            "Fake Out"
+          ],
+          "teraType": "Grass",
+          "role": "Bárbol: Soporte de terreno y pivot ofensivo",
+          "synergyScore": 90,
+          "synergyReason": "El Grassy Terrain reduce el daño de Earthquake, protegiendo a Gholdengo, además de curar pasivamente al equipo.",
+          "level": 50
+        },
+        {
+          "species": "Whimsicott",
+          "item": "Focus Sash",
+          "ability": "Prankster",
+          "nature": "Timid",
+          "evs": {
+            "HP": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Tailwind",
+            "Moonblast",
+            "Helping Hand",
+            "Encore"
+          ],
+          "teraType": "Ghost",
+          "role": "Control de velocidad y soporte",
+          "synergyScore": 95,
+          "synergyReason": "Soluciona la deficiencia de control de velocidad mediante Tailwind con prioridad, permitiendo a Gholdengo atacar primero.",
+          "level": 50
+        },
+        {
+          "species": "Incineroar",
+          "item": "Sitrus Berry",
+          "ability": "Intimidate",
+          "nature": "Careful",
+          "evs": {
+            "HP": 252,
+            "SpD": 156,
+            "Spe": 100
+          },
+          "moves": [
+            "Fake Out",
+            "Flare Blitz",
+            "Knock Off",
+            "Parting Shot"
+          ],
+          "teraType": "Fire",
+          "role": "Soporte defensivo y control de ataque",
+          "synergyScore": 98,
+          "synergyReason": "Intimidate es vital para compensar la fragilidad física de Gholdengo y permitir que el equipo sobreviva más turnos.",
+          "level": 50
+        },
+        {
+          "species": "Urshifu-Rapid-Strike",
+          "item": "Mystic Water",
+          "ability": "Unseen Fist",
+          "nature": "Jolly",
+          "evs": {
+            "Atk": 252,
+            "Spe": 252
+          },
+          "moves": [
+            "Surging Strikes",
+            "Close Combat",
+            "Aqua Jet",
+            "Protect"
+          ],
+          "teraType": "Water",
+          "role": "Atacante físico de presión",
+          "synergyScore": 90,
+          "synergyReason": "Su capacidad de ignorar Protect es fundamental para romper el posicionamiento defensivo del rival bajo Tailwind.",
+          "level": 50
+        },
+        {
+          "species": "Primarina",
+          "item": "Throat Spray",
+          "ability": "Liquid Voice",
+          "nature": "Modest",
+          "evs": {
+            "HP": 252,
+            "SpA": 252
+          },
+          "moves": [
+            "Hyper Voice",
+            "Moonblast",
+            "Icy Wind",
+            "Protect"
+          ],
+          "teraType": "Water",
+          "role": "Atacante especial y control de velocidad secundario",
+          "synergyScore": 85,
+          "synergyReason": "Icy Wind proporciona control de velocidad adicional y Hyper Voice aprovecha el Throat Spray para daño masivo.",
+          "level": 50
+        }
+      ],
+      "modelUsed": "gemini-3.1-flash-lite"
+    }
+  },
+  {
+    "testName": "🌸 Rosa y Fuego (Monotype)",
+    "prompt": "Hazme un equipo donde todos los Pokémon sean de color rosa y que solo usen movimientos que tengan la palabra 'Fuego' o 'Fire' en el nombre o sean de tipo Fuego. Quiero jugar en Smogon OU.",
+    "success": true,
+    "team": {
+      "teamName": "Fairy Hazard Control",
+      "format": "gen9ou",
+      "strategy": "A Fairy-type Monotype team for Gen 9 OU. It maintains offensive pressure while ensuring hazard control through Hatterene's Magic Bounce and Enamorus's ability to clear hazards with Defog, while Clefable provides reliable Stealth Rock support.",
+      "members": [
+        {
+          "species": "Clefable",
+          "item": "Leftovers",
+          "ability": "Magic Guard",
+          "nature": "Bold",
+          "evs": {
+            "HP": 252,
+            "SpA": 4,
+            "Spe": 0
+          },
+          "moves": [
+            "Moonblast",
+            "Soft-Boiled",
+            "Stealth Rock",
+            "Thunder Wave"
+          ],
+          "teraType": "Steel",
+          "role": "Hazard Setter and Pivot",
+          "synergyScore": 95,
+          "synergyReason": "Magic Guard ignores hazard damage, and Clefable provides essential utility with Stealth Rock and speed control via Thunder Wave."
+        },
+        {
+          "species": "Hatterene",
+          "item": "Leftovers",
+          "ability": "Magic Bounce",
+          "nature": "Bold",
+          "evs": {
+            "HP": 252,
+            "SpA": 4,
+            "Spe": 0
+          },
+          "moves": [
+            "Dazzling Gleam",
+            "Psychic",
+            "Calm Mind",
+            "Healing Wish"
+          ],
+          "teraType": "Fire",
+          "role": "Hazard Blocker and Cleric",
+          "synergyScore": 92,
+          "synergyReason": "Magic Bounce prevents entry hazards from being set, and Healing Wish provides a second chance for a weakened sweeper."
+        },
+        {
+          "species": "Flutter Mane",
+          "item": "Booster Energy",
+          "ability": "Protosynthesis",
+          "nature": "Timid",
+          "evs": {
+            "SpA": 252,
+            "SpD": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Moonblast",
+            "Shadow Ball",
+            "Psyshock",
+            "Calm Mind"
+          ],
+          "teraType": "Fairy",
+          "role": "Special Sweeper",
+          "synergyScore": 90,
+          "synergyReason": "Acts as the primary win condition, benefiting from the screens provided by Grimmsnarl to set up Calm Mind."
+        },
+        {
+          "species": "Grimmsnarl",
+          "item": "Light Clay",
+          "ability": "Prankster",
+          "nature": "Careful",
+          "evs": {
+            "HP": 252,
+            "SpD": 252,
+            "Spe": 4
+          },
+          "moves": [
+            "Reflect",
+            "Light Screen",
+            "Spirit Break",
+            "Parting Shot"
+          ],
+          "teraType": "Steel",
+          "role": "Dual Screens Support",
+          "synergyScore": 88,
+          "synergyReason": "Provides defensive utility to allow teammates to set up safely and pivots out with Parting Shot."
+        },
+        {
+          "species": "Enamorus",
+          "item": "Heavy-Duty Boots",
+          "ability": "Contrary",
+          "nature": "Timid",
+          "evs": {
+            "SpA": 252,
+            "SpD": 4,
+            "Spe": 252
+          },
+          "moves": [
+            "Defog",
+            "Moonblast",
+            "Earth Power",
+            "Mystical Fire"
+          ],
+          "teraType": "Ground",
+          "role": "Hazard Removal and Coverage",
+          "synergyScore": 94,
+          "synergyReason": "Provides the mandatory Defog support to keep the team healthy and offers crucial coverage against Steel and Poison types."
+        },
+        {
+          "species": "Primarina",
+          "item": "Choice Specs",
+          "ability": "Torrent",
+          "nature": "Modest",
+          "evs": {
+            "HP": 252,
+            "SpA": 252,
+            "Spe": 4
+          },
+          "moves": [
+            "Hydro Pump",
+            "Moonblast",
+            "Ice Beam",
+            "Psychic"
+          ],
+          "teraType": "Water",
+          "role": "Special Wallbreaker",
+          "synergyScore": 85,
+          "synergyReason": "Provides Water-type coverage to threaten Fire and Ground types that otherwise pressure the Fairy core."
+        }
+      ],
+      "modelUsed": "gemini-3.1-flash-lite"
+    }
+  }
+]

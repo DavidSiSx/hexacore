@@ -3,7 +3,7 @@ import { getRelevantHybridContext } from "@/lib/ai/rag";
 import { generateTeamWithGemini } from "@/lib/ai/gemini";
 import { TeamGenerationOptions, TeamGenerationOptionsSchema } from "@/lib/schemas/team";
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db";
+import { prisma, ensureDbUser } from "@/lib/db";
 import { z } from "zod";
 
 const querySchema = z.string()
@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
           controller.close();
           return;
         }
+
+        await ensureDbUser(user);
 
         // 2. Leer el cuerpo de la petición
         const body = await req.json();

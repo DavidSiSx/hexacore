@@ -12,11 +12,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs" />
+  <img src="https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs" />
   <img src="https://img.shields.io/badge/PostgreSQL-pgvector-316192?logo=postgresql" />
   <img src="https://img.shields.io/badge/AI-Gemini_2.5-4285F4?logo=google" />
-  <img src="https://img.shields.io/badge/ORM-Prisma_7-2D3748?logo=prisma" />
-  <img src="https://img.shields.io/badge/Status-In_Development-orange" />
+  <img src="https://img.shields.io/badge/ORM-Prisma_7.8-2D3748?logo=prisma" />
+  <img src="https://img.shields.io/badge/Styling-Tailwind_v4-06B6D4?logo=tailwindcss" />
+  <img src="https://img.shields.io/badge/Status-Production_Ready-emerald" />
 </p>
 
 ---
@@ -32,50 +33,75 @@
 
 ### What is Hexacore?
 
-Hexacore is a competitive Pokémon team-building assistant that goes far beyond any existing tool. It combines:
+Hexacore is an advanced competitive Pokémon team-building application designed for high-level players. It leverages state-of-the-art AI reasoning and local vector databases to help users generate, refine, and validate teams according to VGC and Smogon regulations.
 
-- **A living RAG knowledge base** seeded with structured Smogon strategies, PokeAPI lore, and real-time usage statistics.
-- **Metagame Dashboard**: Live visualization of Smogon "Chaos" data, showing the most used Pokémon, moves, and abilities in the current format.
-- **Showdown-Grade Damage Calculator**: A professional-grade calculator with Smogon set injection, Tera Type support, and field condition simulations.
-- **Gemini 2.5 with Structured Outputs**: To guarantee legally-valid, format-compliant team suggestions.
+---
 
-### Architecture & RAG Pipeline
+### Architecture & Technical Design
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        Hexacore Stack                        │
-├───────────────────┬──────────────────────┬───────────────────┤
-│    Next.js 16     │   Supabase Postgres  │   Google Gemini   │
-│  (App Router +    │   JSONB + pgvector   │      2.5 Pro      │
-│   Server Actions) │   Prisma 7 ORM       │  Structured JSON  │
-├───────────────────┴──────────────────────┴───────────────────┤
-│                     Knowledge Layer (RAG)                    │
-│  @pkmn/dex + Smogon Sets + PokeAPI + Usage Stats (Chaos)     │
-│  -> Vectorized with all-MiniLM-L6-v2 (384d) -> pgvector      │
-└──────────────────────────────────────────────────────────────┘
-```
+Hexacore is designed following a **Screaming / Clean Architecture** pattern, enforcing a strict separation of concerns, clean routing boundaries, and maximum component reusability:
+
+1. **Modular Components Structure**:
+   * All team-builder logic is organized within [src/app/components/TeamBuilder/](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/).
+   * **Presentational vs. Container Pattern**: UI parts like the [FilterPanel.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/FilterPanel.tsx), [TelemetryTerminal.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/TelemetryTerminal.tsx), and [ValidationDashboard.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/ValidationDashboard.tsx) focus entirely on layout, receiving unified actions and states.
+   * **Custom hooks for logic isolation**:
+     * [useTeamBuilder.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/hooks/useTeamBuilder.ts): Orchestrates generator streams, locks slots, handles Showdown parser logic, and triggers native toast notifications.
+     * [useCustomFormats.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/hooks/useCustomFormats.ts): Manages client-side state for the custom rules database engine.
+   * **Native i18n Dictionary**: Localization dictionary [locales.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/locales.ts) is fully typed using advanced recursive utility mapping (`StringifyLeaf`) to optimize bundles and prevent runtime language mismatches.
+
+2. **Database Integrity & Controlled Autocompletes**:
+   * **Zero Free-Text Fields Policy**: To avoid typos and database index failures when banning Pokémon, items, moves, or abilities, the application uses search components powered by Server Actions ([pokedex.ts](file:///c:/Repositorios/hexacore/src/app/actions/pokedex.ts) and [encyclopedia.ts](file:///c:/Repositorios/hexacore/src/app/actions/encyclopedia.ts)). Only legal, existing entries in the database can be selected.
+   * **Reactive Render-Time Validation**: Legal validation reports (Errors, Warnings, Suggestions) are calculated on-the-fly directly during React render rather than inside heavy `useEffect` hooks, preventing cascading render loops.
+
+---
+
+### AI & RAG Integration
+
+1. **Local Embeddings & RAG**:
+   * Uses `@xenova/transformers` locally with the `all-MiniLM-L6-v2` model to vectorize Smogon strategies, PokeAPI metadata, and Smogon statistics.
+   * Queries stored vector items using `pgvector` on Supabase PostgreSQL databases to feed Gemini 2.5 with relevant, context-aware competitive summaries.
+
+2. **Structured AI Telemetry & Stream Processing**:
+   * Generates teams using Google Gemini, returning structured formats.
+   * Leverages SSE (Server-Sent Events) to decode stream buffers on the fly using `TextDecoder`, showing the live reasoning steps of the agent directly in the neo-brutalist Telemetry Terminal.
+
+3. **Incremental Refinement**:
+   * Allows users to lock specific Pokémon slots and submit feedback to the AI. The generator honors locked slots while adjusting only unlocked positions to build synergies.
+
+---
+
+### Technology Stack
+
+* **Core**: Next.js 16.2 (App Router + Server Actions), React 19.2, TypeScript 5.
+* **Databases**: Supabase PostgreSQL with `pgvector` extension for production, SQLite (via `better-sqlite3`) for local custom format persistence.
+* **ORM**: Prisma 7.8 with dual PostgreSQL/SQLite adapter clients.
+* **AI Engine**: Gemini 2.5 (`@google/generative-ai`) combined with local embeddings.
+* **Styling**: Tailwind CSS v4, custom theme variables, and Framer Motion for micro-animations.
+
+---
 
 ### Roadmap
 
-#### ✅ Phase 1 & 1.5 — Database Foundation & Knowledge Vault
-- [x] Hybrid schema design (`Criatura`, `Objeto`, `Habilidad`, `Movimiento`)
-- [x] Full seed pipeline: 1,468 Pokémon forms enriched with Showdown + Smogon + PokeAPI.
-- [x] Local embedding model (all-MiniLM-L6-v2)
+#### ✅ Phase 1 — Database Foundation & Knowledge Vault
+- [x] Hybrid database schema design.
+- [x] Full seed pipeline: 1,468 Pokémon forms enriched with Showdown + Smogon + PokeAPI data.
+- [x] Local embedding generator with `Transformers.js`.
 
 #### ✅ Phase 2 — Hexacore Premium & Metagame
-- [x] Architecture: Native App Router i18n (`/[lang]`) and Middleware.
-- [x] Aesthetics: Kinetic Typography & Brutalism design system.
-- [x] **Metagame Dashboard**: Integration with Smogon Chaos data.
-- [x] **Damage Calculator**: Professional engine with Smogon sets & Tera support.
+- [x] Native App Router i18n translation middleware.
+- [x] Neo-brutalist styling system with Kinetic typography.
+- [x] **Metagame Dashboard**: Live visualization of Smogon Chaos usage.
+- [x] **Damage Calculator**: Smogon sets injection, field modifiers, and Teracristalization support.
 
-#### 🔄 Phase 3 — User Experience & Navigation
-- [ ] Refactor Navigation Topbar for better accessibility and user flow.
-- [ ] Implement User Profiles and Team History.
+#### ✅ Phase 3 — User Experience & Navigation
+- [x] Refactored Topbar navigation layout.
+- [x] Custom React confirm overlay dialogs in replacement of browser-blocking `confirm()`.
 
-#### ⬜ Phase 4 — The Builder (The Masterpiece)
-- [ ] AI-Driven Team Builder with RAG synergy detection.
-- [ ] Real-time SSE telemetry for streaming AI reasoning.
-- [ ] Legality checker for VGC and Smogon formats.
+#### ✅ Phase 4 — The Builder & Legality Engine (Completed)
+- [x] Team Builder powered by Gemini + RAG context injection.
+- [x] SSE Telemetry Terminal for live AI log streams.
+- [x] Reactive VGC / Smogon legality checker.
+- [x] Custom Format manager allowing clause building and controlled autocomplete bans.
 
 ---
 
@@ -83,33 +109,76 @@ Hexacore is a competitive Pokémon team-building assistant that goes far beyond 
 
 ### ¿Qué es Hexacore?
 
-Hexacore es un asistente de construcción de equipos competitivos de Pokémon que combina:
-
-- **Base de Conocimiento RAG**: Estrategias de Smogon, lore de PokeAPI y estadísticas de uso en tiempo real.
-- **Dashboard de Metajuego**: Visualización en vivo de los datos "Chaos" de Smogon, mostrando lo más usado en el formato actual.
-- **Calculadora de Daño Showdown-Style**: Un motor profesional con inyección de sets de Smogon, soporte para Teracristalización y condiciones de campo.
-- **IA Estructurada**: Gemini 2.5 garantiza que cada sugerencia sea legal y válida para el formato elegido.
-
-### Roadmap
-
-#### ✅ Fase 1 y 1.5 — Cimientos y Bóveda RAG
-- [x] Diseño de esquema híbrido y migración a Prisma 7.
-- [x] Pipeline de sembrado: 1,468 Pokémon enriquecidos con 4 capas de datos.
-
-#### ✅ Fase 2 — Hexacore Premium y Metajuego
-- [x] Arquitectura: i18n nativo y sistema de diseño Brutalista.
-- [x] **Metagame Dashboard**: Integración de datos empíricos de uso.
-- [x] **Calculadora de Daño**: Motor pro con soporte para Tera y sets automáticos.
-
-#### 🔄 Fase 3 — Experiencia de Usuario y Navegación
-- [ ] Refactorización del Topbar de navegación.
-- [ ] Perfiles de usuario y guardado de equipos.
-
-#### ⬜ Fase 4 — El Constructor (La Obra Maestra)
-- [ ] Team Builder impulsado por IA con detección de sinergias RAG.
-- [ ] Telemetría SSE para el razonamiento de la IA en tiempo real.
-- [ ] Verificador de legalidad para VGC y formatos Smogon.
+Hexacore es una aplicación avanzada de construcción de equipos competitivos de Pokémon diseñada para jugadores de alto nivel. Combina razonamiento de inteligencia artificial de última generación y bases de datos vectoriales locales para generar, refinar y validar equipos según las normativas oficiales de VGC y Smogon.
 
 ---
 
-<p align="center">Built with lightning by the Hexacore team</p>
+### Arquitectura y Diseño Técnico
+
+Hexacore sigue un patrón de **Arquitectura Limpia / Screaming Architecture**, garantizando separación estricta de responsabilidades, límites de rutas limpios y máxima reusabilidad:
+
+1. **Estructura Modular de Componentes**:
+   * Toda la lógica del constructor se encuentra en la ruta [src/app/components/TeamBuilder/](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/).
+   * **Patrón Contenedor y Presentacional**: Componentes visuales como [FilterPanel.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/FilterPanel.tsx), [TelemetryTerminal.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/TelemetryTerminal.tsx) y [ValidationDashboard.tsx](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/components/ValidationDashboard.tsx) se encargan únicamente de estructurar el diseño, recibiendo estados y acciones unificadas.
+   * **Custom Hooks para aislar lógica de negocio**:
+     * [useTeamBuilder.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/hooks/useTeamBuilder.ts): Orquesta la generación en streaming, bloquea ranuras del equipo, gestiona el formato Showdown y activa las alertas (toasts) neo-brutalistas.
+     * [useCustomFormats.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/hooks/useCustomFormats.ts): Controla el CRUD local de las reglas de formatos personalizados.
+   * **Internacionalización Nativa**: El diccionario [locales.ts](file:///c:/Repositorios/hexacore/src/app/components/TeamBuilder/locales.ts) está fuertemente tipado mediante utilidades avanzadas de TypeScript (`StringifyLeaf`) para optimizar el bundle final y evitar discrepancias de idiomas.
+
+2. **Integridad de Datos y Autocompletado Controlado**:
+   * **Cero Campos de Texto Libre**: Para evitar errores tipográficos que rompan las búsquedas de legalidad, las listas de baneos de Pokémon, objetos, movimientos o habilidades usan autocompletados restrictivos conectados a Server Actions ([pokedex.ts](file:///c:/Repositorios/hexacore/src/app/actions/pokedex.ts) y [encyclopedia.ts](file:///c:/Repositorios/hexacore/src/app/actions/encyclopedia.ts)).
+   * **Validación Reactiva en Renderizado**: El reporte de legalidad se calcula dinámicamente en el render, eliminando bucles y retardos causados por el uso innecesario de `useEffect`.
+
+---
+
+### Integración de IA y RAG
+
+1. **Embeddings Locales y RAG**:
+   * Emplea `@xenova/transformers` con el modelo `all-MiniLM-L6-v2` para vectorizar localmente guías estratégicas y estadísticas de Smogon.
+   * Realiza búsquedas vectoriales usando `pgvector` en Supabase PostgreSQL para proveer resúmenes competitivos relevantes a Gemini 2.5.
+
+2. **Telemetría y Procesamiento en Streaming**:
+   * Genera respuestas estructuradas desde Gemini.
+   * Utiliza SSE (Server-Sent Events) decodificando buffers con `TextDecoder` para proyectar el flujo de razonamiento interno de la IA en tiempo real en la terminal neo-brutalista.
+
+3. **Refinamiento Incremental**:
+   * Permite fijar Pokémon específicos mediante candados (locks). El motor de IA respeta los candados y actualiza solo las ranuras desbloqueadas garantizando sinergias ideales.
+
+---
+
+### Stack Tecnológico
+
+* **Núcleo**: Next.js 16.2 (App Router + Server Actions), React 19.2, TypeScript 5.
+* **Bases de Datos**: Supabase PostgreSQL con extensión `pgvector` en producción, SQLite (a través de `better-sqlite3`) para reglas de formatos locales.
+* **ORM**: Prisma 7.8 con soporte dual PostgreSQL/SQLite.
+* **Motor de IA**: Gemini 2.5 (`@google/generative-ai`) integrado con embeddings de texto locales.
+* **Estilos**: Tailwind CSS v4, variables de tema dinámicas y Framer Motion para micro-animaciones.
+
+---
+
+### Roadmap
+
+#### ✅ Fase 1 — Cimientos y Bóveda RAG
+- [x] Diseño de base de datos híbrida (Prisma).
+- [x] Pipeline de sembrado de datos enriquecidos de 1,468 Pokémon.
+- [x] Generación de embeddings locales.
+
+#### ✅ Fase 2 — Hexacore Premium y Metajuego
+- [x] Middleware y enrutamiento i18n nativo.
+- [x] Sistema de diseño brutalista con tipografías responsivas.
+- [x] **Dashboard de Metajuego**: Integración de datos Chaos de Smogon.
+- [x] **Calculadora de Daño**: Soporte avanzado para Tera, condiciones de campo e inyección de sets.
+
+#### ✅ Fase 3 — Experiencia de Usuario y Navegación
+- [x] Refactorización del Topbar de navegación.
+- [x] Diálogos y modales con overlays reactivos en React (reemplazo de `confirm()`).
+
+#### ✅ Fase 4 — El Constructor y Motor de Reglas (Completado)
+- [x] Team Builder impulsado por IA con soporte RAG contextual.
+- [x] Terminal SSE de telemetría para razonamiento en streaming.
+- [x] Validador de legalidad reactivo en renderizado.
+- [x] Gestor CRUD de formatos personalizados con listas restrictivas de autocompletado.
+
+---
+
+<p align="center">Hecho por David Alejandro Sierra Sosa</p>

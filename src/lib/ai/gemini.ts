@@ -1,7 +1,14 @@
 import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 import { AITeam, TeamGenerationOptions } from "../schemas/team";
+import { validateTeam } from "../pokemon/validator";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+let genAIInstance: GoogleGenerativeAI | null = null;
+function getGenAI(): GoogleGenerativeAI {
+  if (!genAIInstance) {
+    genAIInstance = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+  }
+  return genAIInstance;
+}
 
 export const teamResponseSchema = {
   type: SchemaType.OBJECT,
@@ -290,8 +297,16 @@ ${constraintsPrompt}
      * El equipo DEBE contar con al menos una forma de Control de Velocidad (como Tailwind, Trick Room, Icy Wind, Electroweb).
      * Se recomienda fuertemente que al menos 3 Pokémon lleven Protect o Detect.
    - Para formatos de SINGLES (Smogon OU, UU, RU, etc.):
-     * Es OBLIGATORIO contar con al menos un removedor de trampas/Hazards (como Rapid Spin, Defog, Mortal Spin, Tidy Up).
-     * El equipo debe contar con un revenge-killer rápido (Velocidad Base >= 110) o un usuario de Choice Scarf.
+      * Es OBLIGATORIO contar con al menos un removedor de trampas/Hazards (como Rapid Spin, Defog, Mortal Spin, Tidy Up).
+      * El equipo debe contar con un revenge-killer rápido (Velocidad Base >= 110) o un usuario de Choice Scarf.
+    - SPECIES CLAUSE OBLIGATORIA: Los 6 Pokémon del equipo deben ser de especies completamente diferentes. Nunca repitas la misma especie de Pokémon (ej. no pongas dos Incineroar).
+    - ITEM CLAUSE OBLIGATORIA: Cada Pokémon debe llevar un objeto diferente. Nunca equipes el mismo objeto en más de un Pokémon si las reglas del formato lo restringen.
+    - NIVEL DE POKÉMON: Configura correctamente el atributo 'level' (ej. 5 para Little Cup, 50 para VGC/Regulaciones, 100 para tiers clásicas de Smogon).
+
+### IDIOMA DE LA RESPUESTA / RESPONSE LANGUAGE:
+El usuario ha seleccionado el idioma: ${options?.lang === "en" ? "Inglés (English)" : "Español (Spanish)"}.
+DEBES escribir TODOS los campos de texto libre ('teamName', 'strategy', 'role', 'synergyReason') ESTRICTAMENTE en ${options?.lang === "en" ? "English (Inglés)" : "Español (Spanish)"}.
+Los nombres propios de Pokémon, movimientos, objetos, naturalezas y habilidades deben permanecer en su nombre canónico en inglés (ej. "Gholdengo", "Make It Rain", "Choice Specs", "Timid").
 `;
 
   let lastError: Error | null = null;
@@ -299,7 +314,7 @@ ${constraintsPrompt}
   for (const modelName of models) {
     try {
       console.log(`[TeamBuilder] Intentando generación con el modelo: ${modelName}...`);
-      const model = genAI.getGenerativeModel({
+      const model = getGenAI().getGenerativeModel({
         model: modelName,
         generationConfig: {
           responseMimeType: "application/json",
@@ -308,15 +323,78 @@ ${constraintsPrompt}
         },
       });
 
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
-      
-      const teamData = JSON.parse(responseText) as AITeam;
-      
+      let result = await model.generateContent(prompt);
+      let responseText = result.response.text();
+      let teamData = JSON.parse(responseText) as AITeam;
+
+      let attempt = 1;
+      const maxAttempts = 3;
+      const formatParam = options?.format || "gen9ou";
+      const validationRules = {
+        ...options?.customRules,
+        monotype: options?.monotype
+      };
+
+      while (attempt <= maxAttempts) {
+        const report = validateTeam(teamData.members, formatParam, validationRules);
+        
+        // Obtener problemas que queremos que la IA corrija obligatoriamente
+        const criticalIssues = [
+          ...report.errors,
+          ...report.warnings.filter(w => 
+            w.includes("Chaleco Asalto") || 
+            w.includes("Choque de Elección") || 
+            w.includes("Guerra Civil de Climas") ||
+            w.includes("Terreno Psíquico") ||
+            w.includes("Species Clause") ||
+            w.includes("Item Clause") ||
+            w.includes("Little Cup Warning")
+          )
+        ];
+
+        if (criticalIssues.length === 0) {
+          console.log(`[TeamBuilder] Equipo validado exitosamente sin problemas críticos en el intento ${attempt}.`);
+          break;
+        }
+
+        if (attempt === maxAttempts) {
+          console.warn(`[TeamBuilder] Se alcanzó el número máximo de intentos (${maxAttempts}) de autocorrección. Retornando el equipo actual con advertencias.`);
+          break;
+        }
+
+        console.log(`[TeamBuilder] El intento ${attempt} falló la validación. Solicitando corrección a la IA...`);
+        console.log("Errores/Advertencias a corregir:", criticalIssues);
+
+        const correctionPrompt = `
+El JSON del equipo de Pokémon generado previamente contiene errores o advertencias de legalidad y/o mecánicas de juego. 
+Por favor, genera un nuevo JSON de equipo optimizado que resuelva estrictamente cada uno de los problemas listados a continuación:
+
+### PROBLEMAS DE LEGALIDAD Y MECÁNICAS DETECTADOS:
+${criticalIssues.map(issue => `- ${issue}`).join("\n")}
+
+### JSON ACTUAL A CORREGIR:
+${JSON.stringify(teamData, null, 2)}
+
+${constraintsPrompt ? `### RESTRICCIONES ORIGINALES:\n${constraintsPrompt}\n` : ""}
+
+### INSTRUCCIONES DE CORRECCIÓN:
+1. Cambia los movimientos, objetos, habilidades, especies o niveles de las ranuras que NO estén bloqueadas para solucionar todos los errores y advertencias críticas.
+2. Si un Pokémon tiene Assault Vest (Chaleco Asalto), quítale todos los movimientos de estado y ponle únicamente movimientos de daño directo, o cámbiale el objeto.
+3. Si un Pokémon tiene un objeto Choice (Specs, Band, Scarf), quítale Protect/Detect y movimientos de boosteo, o cámbiale el objeto.
+4. Si hay Pokémon duplicados (Species Clause), reemplaza los duplicados por especies de Pokémon competitivas con alta sinergia.
+5. Retorna únicamente el objeto JSON del equipo corregido con la estructura y esquema solicitados inicialmente (sin explicaciones ni formato markdown de código fuera del JSON).
+`;
+
+        attempt++;
+        result = await model.generateContent(correctionPrompt);
+        responseText = result.response.text();
+        teamData = JSON.parse(responseText) as AITeam;
+      }
+
       // Inyectamos el modelo que funcionó para poder mostrarlo en la UI
       teamData.modelUsed = modelName;
       
-      console.log(`[TeamBuilder] ¡Generación exitosa con ${modelName}!`);
+      console.log(`[TeamBuilder] ¡Generación exitosa con ${modelName} tras ${attempt} intento(s)!`);
       return teamData;
     } catch (err: any) {
       console.warn(`[TeamBuilder] Falló generación con el modelo ${modelName}:`, err.message);

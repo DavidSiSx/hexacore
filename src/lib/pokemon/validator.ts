@@ -1,5 +1,6 @@
 import { PokemonBuild } from "@/lib/schemas/team";
 import { getTypeEffectiveness } from "../battle/engine";
+import { Dex } from "@pkmn/dex";
 
 export interface ValidationReport {
   valid: boolean;
@@ -658,13 +659,24 @@ const NATDEX_UU_SPECIES = new Set([
 export function getSpeciesData(species: string): { types: string[]; isEvolved: boolean } {
   const normalized = species.trim().replace(/\s+/g, "-");
   
-  // Buscar coincidencia exacta
+  // 1. Intentar buscar en el Dex oficial de @pkmn/dex
+  const sp = Dex.species.get(normalized);
+  if (sp && sp.exists) {
+    const canEvolve = (sp.evos && sp.evos.length > 0) || sp.nfe;
+    const isFirstStage = !sp.prevo && canEvolve;
+    return {
+      types: sp.types,
+      isEvolved: !isFirstStage
+    };
+  }
+  
+  // 2. Buscar coincidencia exacta
   const exactKey = Object.keys(COMPETITIVE_SPECIES_DB).find(k => k.toLowerCase() === normalized.toLowerCase());
   if (exactKey) {
     return COMPETITIVE_SPECIES_DB[exactKey];
   }
   
-  // Coincidencias de prefijos (por ejemplo, Ogerpon-*, Calyrex-*, Incineroar-*, etc.)
+  // 3. Coincidencias de prefijos (por ejemplo, Ogerpon-*, Calyrex-*, Incineroar-*, etc.)
   const foundKey = Object.keys(COMPETITIVE_SPECIES_DB).find(k => 
     normalized.toLowerCase().startsWith(k.toLowerCase()) || 
     k.toLowerCase().startsWith(normalized.toLowerCase())
@@ -674,7 +686,7 @@ export function getSpeciesData(species: string): { types: string[]; isEvolved: b
     return COMPETITIVE_SPECIES_DB[foundKey];
   }
 
-  // Fallback heurístico inteligente
+  // 4. Fallback heurístico inteligente
   const types: string[] = ["Normal"];
   const lName = normalized.toLowerCase();
   
@@ -706,6 +718,19 @@ export function getSpeciesData(species: string): { types: string[]; isEvolved: b
 
 export function getSpeciesBaseStats(species: string): { HP: number; Atk: number; Def: number; SpA: number; SpD: number; Spe: number } {
   const normalized = species.trim().replace(/\s+/g, "-");
+  
+  // 1. Intentar buscar en el Dex oficial de @pkmn/dex
+  const sp = Dex.species.get(normalized);
+  if (sp && sp.exists && sp.baseStats) {
+    return {
+      HP: sp.baseStats.hp,
+      Atk: sp.baseStats.atk,
+      Def: sp.baseStats.def,
+      SpA: sp.baseStats.spa,
+      SpD: sp.baseStats.spd,
+      Spe: sp.baseStats.spe
+    };
+  }
   
   const exactKey = Object.keys(SPECIES_BASE_STATS).find(k => k.toLowerCase() === normalized.toLowerCase());
   if (exactKey) {
@@ -783,7 +808,7 @@ export function validateTeam(
   const isLittleCup = fmt.includes("lc") || fmt.includes("littlecup");
   const isSmogonTiers = isSmogonClassicalSingles || fmt.includes("ubers") || isLittleCup;
   const is1v1 = fmt.includes("1v1");
-  const isMonotype = fmt.includes("monotype");
+  const isMonotype = fmt.includes("monotype") || !!customRules?.monotype || !!customRules?.reglas?.monotype;
   const isAAA = fmt.includes("almost-any-ability") || fmt.includes("aaa");
   const isHackmons = fmt.includes("hackmons") || fmt.includes("bh") || fmt.includes("ph");
   const isSTABmons = fmt.includes("stabmons");
@@ -830,13 +855,8 @@ export function validateTeam(
     allowMythicals = true;
   } else if (isSmogonClassicalSingles || fmt.includes("smogon-doubles-ou")) {
     const isUbersNatDex = fmt.includes("ubers") && isNatDex;
-    if (isUbersNatDex) {
-      maxRestricted = 999;
-      allowMythicals = true;
-    } else {
-      maxRestricted = 0;
-      allowMythicals = isNatDex ? true : false;
-    }
+    maxRestricted = isUbersNatDex ? 999 : 0;
+    allowMythicals = true;
   } else if (isLittleCup) {
     maxRestricted = 0;
     allowParadox = false;
@@ -929,15 +949,27 @@ export function validateTeam(
 
   // 5. Monotype Clause
   if (isMonotype) {
+    const targetType = customRules?.monotype || customRules?.reglas?.monotype;
     const allMemberTypes = members.map(m => getSpeciesData(m.species).types);
     if (allMemberTypes.length > 0) {
-      // Encontrar la intersección de todos los tipos elementales del equipo
-      let commonTypes = [...allMemberTypes[0]];
-      for (let i = 1; i < allMemberTypes.length; i++) {
-        commonTypes = commonTypes.filter(t => allMemberTypes[i].includes(t));
-      }
-      if (commonTypes.length === 0) {
-        errors.push("Violación de Monotype Clause: Todos los integrantes del equipo deben compartir al menos un tipo elemental común (ej. Todos tipo Agua).");
+      if (targetType) {
+        const targetLower = targetType.toLowerCase();
+        const invalidMembers = members.filter((m, idx) => {
+          const types = allMemberTypes[idx].map(t => t.toLowerCase());
+          return !types.includes(targetLower);
+        });
+        if (invalidMembers.length > 0) {
+          errors.push(`Violación de Monotype Clause: Todos los integrantes del equipo deben poseer el tipo elemental "${targetType}". Los siguientes miembros no lo tienen: ${invalidMembers.map(m => m.species).join(", ")}.`);
+        }
+      } else {
+        // Encontrar la intersección de todos los tipos elementales del equipo
+        let commonTypes = [...allMemberTypes[0]];
+        for (let i = 1; i < allMemberTypes.length; i++) {
+          commonTypes = commonTypes.filter(t => allMemberTypes[i].includes(t));
+        }
+        if (commonTypes.length === 0) {
+          errors.push("Violación de Monotype Clause: Todos los integrantes del equipo deben compartir al menos un tipo elemental común (ej. Todos tipo Agua).");
+        }
       }
     }
   }

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/db";
+import { prisma, ensureDbUser } from "@/lib/db";
 import { z } from "zod";
 
 // Esquema de validación estricta para las reglas personalizadas
@@ -38,6 +38,8 @@ export async function getCustomFormatsAction() {
       return { success: false as const, error: "Acceso denegado. Inicia sesión para cargar tus formatos personalizados." };
     }
 
+    await ensureDbUser(user);
+
     const formats = await prisma.formatoPersonalizado.findMany({
       where: { usuarioId: user.id },
       orderBy: { created_at: "desc" },
@@ -63,6 +65,8 @@ export async function saveCustomFormatAction(
     if (authError || !user) {
       return { success: false as const, error: "Acceso denegado. Inicia sesión para guardar formatos personalizados." };
     }
+
+    await ensureDbUser(user);
 
     // Validar datos de entrada
     const validation = customFormatSchema.safeParse({ nombre, descripcion, reglas });
@@ -127,6 +131,8 @@ export async function deleteCustomFormatAction(id: string) {
     if (authError || !user) {
       return { success: false as const, error: "Acceso denegado. Inicia sesión para eliminar formatos." };
     }
+
+    await ensureDbUser(user);
 
     const existing = await prisma.formatoPersonalizado.findFirst({
       where: { id, usuarioId: user.id },

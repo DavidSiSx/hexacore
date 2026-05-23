@@ -61,6 +61,7 @@ export const TeamGenerationOptionsSchema = z.object({
   currentTeam: z.array(PokemonBuildSchema).optional(),
   refinementPrompt: z.string().optional(),
   customRules: z.any().optional(),
+  lang: z.enum(["es", "en"]).optional().default("es"),
 });
 
 export type TeamGenerationOptions = z.infer<typeof TeamGenerationOptionsSchema>;
