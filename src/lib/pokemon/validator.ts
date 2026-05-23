@@ -1018,11 +1018,31 @@ export function validateTeam(
   let protectCount = 0;
   const isDoubles = isVgcOrDoubles || fmt.includes("doubles-ou") || fmt.includes("doublesou");
 
-  members.forEach((m, idx) => {
-    const name = m.species || `Slot ${idx + 1}`;
+  const configuredMembers = members.filter(m => m.species && m.species.trim() !== "");
+  if (configuredMembers.length === 0) {
+    return { 
+      valid: false, 
+      errors: ["El equipo no tiene ningún Pokémon configurado todavía. Añade un Pokémon para comenzar."], 
+      warnings: [], 
+      suggestions: [],
+      stats: {
+        weathers: [],
+        terrains: [],
+        hasSpeedControl: false,
+        hasHazardControl: false,
+        protectCount: 0,
+        immunities: [],
+        weaknesses: []
+      }
+    };
+  }
+
+  members.forEach((m) => {
+    if (!m.species || m.species.trim() === "") return;
+    const name = m.species;
     const moves = m.moves.filter(move => move && move.trim() !== "").map(mv => mv.toLowerCase().trim());
-    const itemLower = m.item.toLowerCase().trim();
-    const abilityLower = m.ability.toLowerCase().trim();
+    const itemLower = m.item ? m.item.toLowerCase().trim() : "";
+    const abilityLower = m.ability ? m.ability.toLowerCase().trim() : "";
     const speciesData = getSpeciesData(m.species);
 
     // Validar restricciones de categoría por formato

@@ -117,6 +117,34 @@ export function useTeamBuilder(customFormats: CustomFormat[]) {
     setShowImportModal(false);
   }
 
+  function handleCreateFromScratch() {
+    setLockedSlots([false, false, false, false, false, false]);
+    setTeam({
+      teamName: locale === "es" ? "Mi Equipo Competitivo" : "My Competitive Team",
+      strategy: locale === "es" 
+        ? "Construido manualmente desde cero. Edita las ranuras para configurar tus Pokémon." 
+        : "Manually built from scratch. Edit slots to configure your Pokémon.",
+      format: format || "regulation-h",
+      members: Array.from({ length: 6 }, () => ({
+        species: "",
+        item: "None",
+        ability: "None",
+        nature: "Serious",
+        teraType: "Normal",
+        evs: { HP: 0, Atk: 0, Def: 0, SpA: 0, SpD: 0, Spe: 0 },
+        ivs: { HP: 31, Atk: 31, Def: 31, SpA: 31, SpD: 31, Spe: 31 },
+        moves: ["", "", "", ""],
+        role: "",
+      })),
+    });
+    showToast(
+      locale === "es"
+        ? "Tablero de equipo inicializado con 6 ranuras vacías."
+        : "Team board initialized with 6 empty slots.",
+      "success"
+    );
+  }
+
   function openExportModal() {
     if (!team) return;
     const output = exportTeamToShowdown(team.members);
@@ -277,6 +305,7 @@ export function useTeamBuilder(customFormats: CustomFormat[]) {
     handleCopyToClipboard,
     handleSubmit,
     handleRefinementSubmit,
+    handleCreateFromScratch,
   };
 }
 export type UseTeamBuilderReturn = ReturnType<typeof useTeamBuilder>;

@@ -324,14 +324,31 @@ export default function TeamBuilder() {
             {/* Empty State */}
             {!builderState.loading && !builderState.team && !builderState.error && (
               <div className="flex flex-col items-center justify-center h-full min-h-[420px] 
-                              border-4 border-dashed border-zinc-800 bg-zinc-950/30">
-                <div className="w-16 h-16 border-4 border-zinc-800 flex items-center justify-center mb-4
+                              border-4 border-dashed border-zinc-800 bg-zinc-950/30 p-8">
+                <div className="w-16 h-16 border-4 border-zinc-800 flex items-center justify-center mb-6
                                 shadow-[4px_4px_0px_#000000]">
                   <Sparkles className="w-8 h-8 text-zinc-550" strokeWidth={2} />
                 </div>
-                <p className="text-zinc-555 text-[10px] font-black uppercase tracking-widest text-center max-w-xs leading-relaxed">
-                  {t.emptyTitle} <strong className="text-[var(--accent)] underline cursor-pointer" onClick={() => builderState.setShowImportModal(true)}>{t.emptyAction}</strong> {t.emptyEnd}
+                
+                <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider text-center max-w-sm leading-relaxed mb-6">
+                  {t.emptyTitle} <strong className="text-[var(--accent)] underline cursor-pointer" onClick={() => builderState.setShowImportModal(true)}>{t.emptyAction}</strong> {t.emptyOr} <strong className="text-purple-450 underline cursor-pointer" onClick={builderState.handleCreateFromScratch}>{t.createFromScratch}</strong> {t.emptyEnd}
                 </p>
+
+                {/* Direct Action Buttons for Better UX */}
+                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+                  <button
+                    onClick={() => builderState.setShowImportModal(true)}
+                    className="flex-1 px-4 py-3 border-4 border-zinc-800 bg-zinc-950 text-[10px] font-black uppercase tracking-widest text-zinc-400 shadow-[3px_3px_0px_black] hover:border-[#00FF66] hover:text-[#00FF66] hover:shadow-[3px_3px_0px_#00FF66] hover:-translate-y-0.5 transition-all cursor-pointer"
+                  >
+                    {t.importShowdown}
+                  </button>
+                  <button
+                    onClick={builderState.handleCreateFromScratch}
+                    className="flex-1 px-4 py-3 border-4 border-zinc-800 bg-zinc-950 text-[10px] font-black uppercase tracking-widest text-zinc-400 shadow-[3px_3px_0px_black] hover:border-purple-500 hover:text-purple-450 hover:shadow-[3px_3px_0px_#a855f7] hover:-translate-y-0.5 transition-all cursor-pointer"
+                  >
+                    {t.createFromScratch}
+                  </button>
+                </div>
               </div>
             )}
           </section>

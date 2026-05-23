@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { PokemonBuild } from "@/lib/schemas/team";
 import SpriteImg from "@/app/components/Shared/SpriteImg";
 import TypeBadge from "@/app/components/Shared/TypeBadge";
 import { useTheme } from "@/app/components/Shared/ThemeProvider";
+import { translations, Locale } from "./TeamBuilder/locales";
 import DamageCalcPanel from "@/app/components/DamageCalcPanel";
 import AutocompleteSelect from "@/app/components/Shared/AutocompleteSelect";
 import { searchPokemonSpecies } from "@/app/actions/pokedex";
@@ -173,6 +175,272 @@ export default function TeamPokemonCard({ pokemon, index, onChange, isLocked, on
     ]);
     setIsEditing(false);
   }
+
+  const params = useParams();
+  const locale = ((params?.lang as Locale) || "es") satisfies Locale;
+  const t = translations[locale];
+
+  const isEmpty = !pokemon.species || pokemon.species.trim() === "";
+
+  if (isEmpty) {
+    return (
+      <>
+        <div 
+          onClick={() => setIsEditing(true)}
+          className={`border-4 border-dashed ${activeTheme.borderClass} ${activeTheme.cardBgClass} p-6 flex flex-col items-center justify-center gap-3 h-full min-h-[350px] cursor-pointer group hover:bg-[var(--accent)]/5 hover:border-[var(--accent)] hover:shadow-[6px_6px_0px_#000000] hover:scale-[1.01] transition-all duration-300 relative`}
+        >
+          {/* Slot Number Badge */}
+          <span className="absolute top-4 left-4 w-6 h-6 bg-zinc-900 text-zinc-400 text-[10px] font-black flex items-center justify-center border-2 border-zinc-700">
+            {index + 1}
+          </span>
+          
+          <div className="w-12 h-12 border-4 border-dashed border-zinc-800 group-hover:border-[var(--border)] group-hover:border-solid flex items-center justify-center transition-all duration-300">
+            <span className="text-2xl font-black text-zinc-650 group-hover:text-[var(--accent)] transition-colors">+</span>
+          </div>
+          
+          <div className="text-center">
+            <h3 className={`text-sm font-black uppercase tracking-tighter ${activeTheme.textMainClass} group-hover:text-[var(--accent)] transition-colors mb-1`}>
+              {t.emptySlot}
+            </h3>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${activeTheme.textMutedClass} max-w-[200px] leading-relaxed mx-auto`}>
+              {t.emptySlotDesc}
+            </p>
+          </div>
+        </div>
+
+        {/* Render edit modal so that it can be opened directly */}
+        <AnimatePresence>
+          {isEditing && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={handleCancel}
+                className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md cursor-pointer"
+              />
+
+              {/* Modal Body */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: "spring", duration: 0.35 }}
+                className="fixed inset-4 md:inset-auto md:w-full md:max-w-5xl md:h-[90vh] z-50 bg-zinc-950 border-4 border-[var(--accent)] shadow-[8px_8px_0px_black] p-6 flex flex-col justify-between overflow-hidden md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 text-white"
+              >
+                {/* Header */}
+                <div className="flex justify-between items-center pb-4 border-b-2 border-zinc-800 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-none bg-[var(--accent)] text-black font-black flex items-center justify-center text-sm">
+                      {index + 1}
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter italic">
+                      Configurar Pokémon <span className="text-[var(--accent)]">{editedSpecies || "VACÍO"}</span>
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleCancel}
+                    className="p-1.5 border-2 border-zinc-700 hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto py-6 grid grid-cols-1 lg:grid-cols-3 gap-8 pr-1">
+                  {/* Columna 1: Info Básica */}
+                  <div className="flex flex-col gap-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-[var(--accent)] mb-2 flex items-center gap-1.5 border-b border-zinc-800 pb-1 shrink-0">
+                      <SwatchBook className="w-4 h-4" /> Datos de Identidad
+                    </h4>
+
+                    <AutocompleteSelect
+                      label="Especie / Pokémon (Lista Verificada)"
+                      value={editedSpecies}
+                      onChange={setEditedSpecies}
+                      placeholder="Busca e.g. Togekiss, Garchomp..."
+                      searchAction={searchPokemonSpecies}
+                    />
+
+                    <div>
+                      <label className={`text-[9px] font-black uppercase tracking-wider ${activeTheme.textMutedClass} block mb-1`}>
+                        Rol Estratégico
+                      </label>
+                      <input
+                        type="text"
+                        value={editedRole}
+                        onChange={(e) => setEditedRole(e.target.value)}
+                        placeholder="e.g. Offensive Pivot, Tailwind Setter"
+                        className={`w-full bg-[var(--background)] border-2 ${activeTheme.borderClass} px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-white transition-colors`}
+                      />
+                    </div>
+
+                    <AutocompleteSelect
+                      label="Objeto Equipado (Lista Verificada)"
+                      value={editedItem}
+                      onChange={setEditedItem}
+                      placeholder="Busca e.g. Choice Specs, Leftovers..."
+                      searchAction={searchItems}
+                    />
+
+                    <AutocompleteSelect
+                      label="Habilidad Especial (Lista Verificada)"
+                      value={editedAbility}
+                      onChange={setEditedAbility}
+                      placeholder="Busca e.g. Intimidate, Levitate..."
+                      searchAction={searchAbilities}
+                    />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={`text-[9px] font-black uppercase tracking-wider ${activeTheme.textMutedClass} block mb-1`}>
+                          Tera Type
+                        </label>
+                        <select
+                          value={editedTeraType}
+                          onChange={(e) => setEditedTeraType(e.target.value)}
+                          className={`w-full bg-[var(--background)] border-2 ${activeTheme.borderClass} px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-white cursor-pointer`}
+                        >
+                          {POKEMON_TYPES.map((type) => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`text-[9px] font-black uppercase tracking-wider ${activeTheme.textMutedClass} block mb-1`}>
+                          Naturaleza
+                        </label>
+                        <select
+                          value={editedNature}
+                          onChange={(e) => setEditedNature(e.target.value)}
+                          className={`w-full bg-[var(--background)] border-2 ${activeTheme.borderClass} px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-white cursor-pointer`}
+                        >
+                          {NATURES.map((nat) => (
+                            <option key={nat} value={nat}>{nat}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Columna 2: Sliders EV */}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center border-b border-zinc-800 pb-1">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-[var(--accent)] flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4" /> Distribución EVs
+                      </h4>
+                      <span className={`text-[10px] font-black px-2 py-0.5 border ${activeTheme.borderClass}
+                                       ${totalEvs > 510 ? "bg-[var(--danger)] text-white" : "bg-[var(--accent)]/10"}`}>
+                        {totalEvs} / 510 EVs
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {Object.keys(editedEvs).map((stat) => {
+                        const typedStat = stat as keyof typeof editedEvs;
+                        const val = editedEvs[typedStat];
+                        return (
+                          <div key={stat} className="flex flex-col gap-1">
+                            <div className="flex justify-between text-[9px] font-black uppercase tracking-wider">
+                              <span>{stat}</span>
+                              <span>{val}</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="252"
+                              step="4"
+                              value={val}
+                              onChange={(e) => handleEvChange(typedStat, parseInt(e.target.value))}
+                              className="w-full accent-[var(--accent)] cursor-pointer h-1.5 bg-zinc-800 rounded-none appearance-none"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Columna 3: Movimientos + IVs */}
+                  <div className="flex flex-col gap-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-[var(--accent)] mb-2 flex items-center gap-1.5 border-b border-zinc-800 pb-1">
+                      <Zap className="w-4 h-4" /> Movimientos y IVs
+                    </h4>
+
+                    {/* Moves Autocompletes */}
+                    <div className="flex flex-col gap-3">
+                      {editedMoves.map((move, mi) => (
+                        <AutocompleteSelect
+                          key={mi}
+                          label={`Movimiento ${mi + 1}`}
+                          value={move}
+                          onChange={(val) => {
+                            const newMoves = [...editedMoves];
+                            newMoves[mi] = val;
+                            setEditedMoves(newMoves);
+                          }}
+                          placeholder={`Busca e.g. Thunderbolt, Spore...`}
+                          searchAction={searchMoves}
+                        />
+                      ))}
+                    </div>
+
+                    {/* IVs Row */}
+                    <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-zinc-800">
+                      <span className={`text-[9px] font-black uppercase tracking-wider ${activeTheme.textMutedClass}`}>
+                        Valores Individuales (IVs)
+                      </span>
+                      <div className="grid grid-cols-6 gap-1.5">
+                        {Object.keys(editedIvs).map((stat) => {
+                          const typedStat = stat as keyof typeof editedIvs;
+                          const val = editedIvs[typedStat];
+                          return (
+                            <div key={stat} className="flex flex-col items-center">
+                              <span className="text-[8px] font-black uppercase mb-1">{stat}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="31"
+                                value={val}
+                                onChange={(e) => {
+                                  const newIvs = { ...editedIvs };
+                                  newIvs[typedStat] = Math.max(0, Math.min(31, parseInt(e.target.value) || 0));
+                                  setEditedIvs(newIvs);
+                                }}
+                                className={`w-full text-center bg-[var(--background)] border-2 ${activeTheme.borderClass} py-0.5 text-[10px] font-black focus:outline-none focus:border-white`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="pt-4 border-t-2 border-zinc-800 flex justify-end gap-3 shrink-0">
+                  <button
+                    onClick={handleCancel}
+                    className="px-6 py-2 border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <X className="w-4 h-4" /> Cancelar
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="px-6 py-2 border-2 border-[var(--accent)] bg-[var(--accent)] text-black hover:bg-white hover:border-white hover:text-black text-xs font-black uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" /> Guardar Cambios
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
+
+
 
   return (
     <>

@@ -87,7 +87,12 @@ export function importTeamFromShowdown(text: string): PokemonBuild[] {
     if (species.includes("(") && species.includes(")")) {
       const match = species.match(/\(([^)]+)\)/);
       if (match) {
-        species = match[1].trim();
+        const inside = match[1].trim();
+        if (inside === "M" || inside === "F") {
+          species = species.replace(/\([^)]+\)/, "").trim();
+        } else {
+          species = inside;
+        }
       }
     }
 

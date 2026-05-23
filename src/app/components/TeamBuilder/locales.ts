@@ -87,9 +87,14 @@ export const translations = {
     validationSuggestions: "NIVEL 3: COHERENCIA ESTRUCTURAL Y COACHING DE IA",
     
     // Empty State
-    emptyTitle: "Escribe una idea de equipo arriba o presiona",
+    emptyTitle: "Escribe una idea de equipo arriba,",
     emptyAction: "Importar Showdown",
+    emptyOr: "o",
+    createFromScratch: "Crear desde cero",
     emptyEnd: "para comenzar.",
+    emptySlot: "Ranura Vacía",
+    addPokemon: "Añadir Pokémon",
+    emptySlotDesc: "Configura un Pokémon de forma interactiva en esta ranura.",
     
     // Import Modal
     importTitle: "Importar Equipo Pokémon Showdown",
@@ -238,9 +243,14 @@ export const translations = {
     validationSuggestions: "LEVEL 3: STRUCTURAL COHERENCE & AI COACHING",
     
     // Empty State
-    emptyTitle: "Type a team idea above or press",
+    emptyTitle: "Type a team idea above,",
     emptyAction: "Import Showdown",
+    emptyOr: "or",
+    createFromScratch: "Start from scratch",
     emptyEnd: "to start.",
+    emptySlot: "Empty Slot",
+    addPokemon: "Add Pokémon",
+    emptySlotDesc: "Configure a Pokémon interactively in this slot.",
     
     // Import Modal
     importTitle: "Import Pokémon Showdown Team",
