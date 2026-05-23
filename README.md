@@ -12,6 +12,16 @@
 </p>
 
 <p align="center">
+  <a href="https://hexacore-teambuilder.vercel.app" target="_blank" style="font-size: 1.1rem; font-weight: bold; text-decoration: none; color: black; background: #FFDE47; padding: 8px 16px; border: 3px solid black; box-shadow: 4px 4px 0px 0px #000; display: inline-block; margin: 10px 0;">
+    🚀 LIVE DEMO / DEMO EN VIVO
+  </a>
+</p>
+
+<p align="center" style="margin: 20px 0;">
+  <img src="public/images/hexacore_mockup.png" alt="Hexacore UI Neo-Brutalist Dashboard & AI Telemetry Terminal" width="800" style="border: 4px solid black; box-shadow: 8px 8px 0px 0px #000; max-width: 100%;" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs" />
   <img src="https://img.shields.io/badge/PostgreSQL-pgvector-316192?logo=postgresql" />
   <img src="https://img.shields.io/badge/AI-Gemini_2.5-4285F4?logo=google" />
@@ -84,6 +94,56 @@ Hexacore is designed following a **Screaming / Clean Architecture** pattern, enf
 * **ORM**: Prisma 7.8 with dual PostgreSQL/SQLite adapter clients.
 * **AI Engine**: Gemini 2.5 (`@google/generative-ai`) combined with local embeddings.
 * **Styling**: Tailwind CSS v4, custom theme variables, and Framer Motion for micro-animations.
+
+---
+
+### 🚀 Getting Started
+
+To run Hexacore locally, follow these steps:
+
+#### Prerequisites
+- **Node.js** (v18.x or higher)
+- **pnpm** (v9.x or higher)
+- **PostgreSQL** (with `pgvector` extension enabled, e.g., Supabase)
+
+#### Installation & Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/DavidSiSx/hexacore.git
+   cd hexacore
+   ```
+
+2. **Install dependencies**:
+   Make sure you use `pnpm` as the dependency manager:
+   ```bash
+   pnpm install
+   ```
+
+3. **Configure Environment Variables**:
+   Copy the example environment file and fill in your values (Supabase credentials and Gemini API Key):
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: In production, managing Gemini API usage limits will be key to prevent rate-limiting under heavy usage.*
+
+4. **Initialize the Database**:
+   Run Prisma migrations and seed the database with Pokémon metadata and strategy vectors:
+   ```bash
+   npx prisma migrate dev
+   npx prisma db seed
+   ```
+
+5. **Run the Development Server**:
+   ```bash
+   pnpm dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+6. **Run Tests**:
+   ```bash
+   pnpm test
+   ```
 
 ---
 
@@ -167,6 +227,56 @@ Hexacore sigue un patrón de **Arquitectura Limpia / Screaming Architecture**, g
 * **ORM**: Prisma 7.8 con soporte dual PostgreSQL/SQLite.
 * **Motor de IA**: Gemini 2.5 (`@google/generative-ai`) integrado con embeddings de texto locales.
 * **Estilos**: Tailwind CSS v4, variables de tema dinámicas y Framer Motion para micro-animaciones.
+
+---
+
+### 🚀 Guía de Inicio
+
+Para ejecutar Hexacore localmente, sigue estos pasos:
+
+#### Requisitos Previos
+- **Node.js** (v18.x o superior)
+- **pnpm** (v9.x o superior)
+- **PostgreSQL** (con la extensión `pgvector` habilitada, ej. Supabase)
+
+#### Instalación y Configuración
+
+1. **Clonar el repositorio**:
+   ```bash
+   git clone https://github.com/DavidSiSx/hexacore.git
+   cd hexacore
+   ```
+
+2. **Instalar dependencias**:
+   Asegúrate de usar `pnpm` como gestor de paquetes del proyecto:
+   ```bash
+   pnpm install
+   ```
+
+3. **Configurar Variables de Entorno**:
+   Copia el archivo de ejemplo y completa tus credenciales de Supabase y tu API Key de Gemini:
+   ```bash
+   cp .env.example .env
+   ```
+   *Nota: En producción, gestionar adecuadamente los límites de uso de la API de Gemini es fundamental para evitar bloqueos por cuotas.*
+
+4. **Inicializar la Base de Datos**:
+   Ejecuta las migraciones de Prisma y el sembrado de datos (metadatos de Pokémon y vectores de estrategia):
+   ```bash
+   npx prisma migrate dev
+   npx prisma db seed
+   ```
+
+5. **Iniciar el Servidor de Desarrollo**:
+   ```bash
+   pnpm dev
+   ```
+   Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+
+6. **Ejecutar Pruebas**:
+   ```bash
+   pnpm test
+   ```
 
 ---
 
