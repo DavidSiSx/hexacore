@@ -48,7 +48,8 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
   ];
 
   return (
-    <nav className={`sticky top-0 z-50 w-full border-b-4 ${activeTheme.borderClass} bg-black/95 backdrop-blur-md transition-colors duration-300`}>
+    <>
+      <nav className={`sticky top-0 z-50 w-full border-b-4 ${activeTheme.borderClass} bg-black/95 backdrop-blur-md transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-4 lg:px-6 h-14 sm:h-16">
         {/* Logo Neo-Brutalist */}
         <Link href={`/${lang}`} className="flex items-center gap-2 group">
@@ -249,36 +250,40 @@ export default function Navbar({ lang, dict }: { lang: string; dict: Record<stri
           </div>
         </div>
       )}
+    </nav>
       {/* Modal Brutalista - Tema Cuarzo en Desarrollo */}
       {showQuartzModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#DFE104] text-black border-4 border-black p-6 w-full max-w-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col gap-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-[#DFE104] text-black border-4 border-black p-8 w-full max-w-md shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative flex flex-col gap-6">
             <button
               onClick={() => setShowQuartzModal(false)}
-              className="absolute top-3 right-3 bg-black text-[#DFE104] border-2 border-black p-1 hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer font-bold text-xs"
+              className="absolute top-4 right-4 bg-black text-[#DFE104] border-2 border-black w-8 h-8 flex items-center justify-center hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer font-black text-sm"
             >
               ✕
             </button>
-            <div className="flex flex-col gap-2 mt-2">
-              <h4 className="text-xl font-black uppercase tracking-tighter leading-none">
+            <div className="flex flex-col gap-3 mt-2 text-center">
+              <span className="bg-black text-[#DFE104] font-black uppercase text-[10px] tracking-widest px-2.5 py-1 inline-block mx-auto border-2 border-black">
+                MODO BETA / PROXIMAMENTE
+              </span>
+              <h4 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter leading-none mt-2">
                 Tema en Desarrollo
               </h4>
-              <p className="text-xs font-bold uppercase leading-tight text-black/85">
+              <p className="text-xs sm:text-sm font-bold uppercase leading-snug text-black/85 mt-2">
                 El tema "Minimalismo Cuarzo" se encuentra actualmente en fase de optimización y pruebas de estabilidad.
               </p>
-              <p className="text-[10px] font-black uppercase text-black/60 bg-black/10 p-2 border border-black/20">
+              <p className="text-xs font-black uppercase text-black/60 bg-black/10 p-3 border-2 border-black/20 mt-2">
                 ¡Próximamente estará disponible en la versión Hexacore Pro!
               </p>
             </div>
             <button
               onClick={() => setShowQuartzModal(false)}
-              className="mt-2 bg-black text-white hover:bg-zinc-900 border-2 border-black py-2 text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] cursor-pointer"
+              className="mt-2 bg-black text-white hover:bg-zinc-900 border-2 border-black py-3 text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] cursor-pointer"
             >
               ENTENDIDO
             </button>
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 }
