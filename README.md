@@ -59,13 +59,17 @@ Hexacore is designed following a **Screaming / Clean Architecture** pattern, enf
 
 1. **Local Embeddings & RAG**:
    * Uses `@xenova/transformers` locally with the `all-MiniLM-L6-v2` model to vectorize Smogon strategies, PokeAPI metadata, and Smogon statistics.
-   * Queries stored vector items using `pgvector` on Supabase PostgreSQL databases to feed Gemini 2.5 with relevant, context-aware competitive summaries.
+   * Queries stored vector items using `pgvector` on Supabase PostgreSQL databases to feed Gemini 2.5/3.5 with relevant, context-aware competitive summaries.
 
-2. **Structured AI Telemetry & Stream Processing**:
+2. **Strategic AI Coach (Beta)**:
+   * Features an interactive competitive coaching sidebar drawer. It classifies user queries (threat counters, speed tiers, synergy, EV spreads) using semantic intent classification, retrieves context-relevant RAG guides from the database, and responds using Google Gemini.
+   * Includes a persistent rate-limiting Beta Mode (capped at 5 questions per user session stored in `localStorage`) with a responsive Neo-Brutalist telemetry warning layout.
+
+3. **Structured AI Telemetry & Stream Processing**:
    * Generates teams using Google Gemini, returning structured formats.
    * Leverages SSE (Server-Sent Events) to decode stream buffers on the fly using `TextDecoder`, showing the live reasoning steps of the agent directly in the neo-brutalist Telemetry Terminal.
 
-3. **Incremental Refinement**:
+4. **Incremental Refinement**:
    * Allows users to lock specific Pokémon slots and submit feedback to the AI. The generator honors locked slots while adjusting only unlocked positions to build synergies.
 
 ---
@@ -192,13 +196,17 @@ Hexacore sigue un patrón de **Arquitectura Limpia / Screaming Architecture**, g
 
 1. **Embeddings Locales y RAG**:
    * Emplea `@xenova/transformers` con el modelo `all-MiniLM-L6-v2` para vectorizar localmente guías estratégicas y estadísticas de Smogon.
-   * Realiza búsquedas vectoriales usando `pgvector` en Supabase PostgreSQL para proveer resúmenes competitivos relevantes a Gemini 2.5.
+   * Realiza búsquedas vectoriales usando `pgvector` en Supabase PostgreSQL para proveer resúmenes competitivos relevantes a Gemini 2.5/3.5.
 
-2. **Telemetría y Procesamiento en Streaming**:
+2. **Coach Estratégico de IA (Beta)**:
+   * Incorpora un panel lateral interactivo para asesoría competitiva en tiempo real. Realiza clasificación semántica de intención sobre las dudas del usuario (counters, velocidad, sinergias, repartos de EVs), recupera guías contextuales mediante RAG y genera respuestas tácticas con Gemini.
+   * Implementa una restricción persistente en modo Beta limitada a 5 preguntas gratuitas por sesión (almacenadas de forma segura en `localStorage`), acompañado de advertencias y estados visuales neo-brutalistas.
+
+3. **Telemetría y Procesamiento en Streaming**:
    * Genera respuestas estructuradas desde Gemini.
    * Utiliza SSE (Server-Sent Events) decodificando buffers con `TextDecoder` para proyectar el flujo de razonamiento interno de la IA en tiempo real en la terminal neo-brutalista.
 
-3. **Refinamiento Incremental**:
+4. **Refinamiento Incremental**:
    * Permite fijar Pokémon específicos mediante candados (locks). El motor de IA respeta los candados y actualiza solo las ranuras desbloqueadas garantizando sinergias ideales.
 
 ---
