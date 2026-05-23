@@ -278,6 +278,11 @@ ${ragContext}
 
 ### PETICIÓN DEL USUARIO:
 "${userPrompt}"
+
+### PRIORIDAD ABSOLUTA — RESPETAR LA TEMÁTICA DEL USUARIO:
+Si el usuario pide un equipo con un TEMA, CONCEPTO o RESTRICCIÓN CREATIVA específica (ej. "pikaclones", "equipo de pulpos", "solo Pokémon rojos", "estética samurái", "Eeveelutions"), TU PRIORIDAD #1 ES ENCONTRAR POKÉMON QUE ENCAJEN CON ESE TEMA.
+Primero selecciona los Pokémon que cumplen la temática, y DESPUÉS optimiza sus sets competitivos (EVs, naturalezas, objetos, movimientos) para que funcionen lo mejor posible dentro de ese tema.
+NUNCA ignores la temática del usuario para meter Pokémon meta genéricos que no tengan relación con lo solicitado.
 ${constraintsPrompt}
 
 ### REGLAS ESTRICTAS Y PRE-VALIDACIÓN OBLIGATORIA:
@@ -314,12 +319,17 @@ Los nombres propios de Pokémon, movimientos, objetos, naturalezas y habilidades
   for (const modelName of models) {
     try {
       console.log(`[TeamBuilder] Intentando generación con el modelo: ${modelName}...`);
+
+      // Temperatura dinámica: más alta para temas creativos/casuales, baja para meta estricto
+      const isCreativeRequest = options?.metaMode === "casual" || options?.metaMode === "ai_chooses";
+      const temperature = isCreativeRequest ? 0.6 : 0.2;
+
       const model = getGenAI().getGenerativeModel({
         model: modelName,
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: teamResponseSchema as Schema,
-          temperature: 0.2, // Baja temperatura para priorizar precisión mecánica sobre creatividad extrema
+          temperature,
         },
       });
 

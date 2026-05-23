@@ -36,9 +36,26 @@ export async function chatAssistantAction(
     const historyValidation = chatHistorySchema.safeParse(history);
     const validatedHistory = historyValidation.success ? historyValidation.data : [];
 
-    // 3. Clasificación semántica de intención (Intent Classification)
+    // 3. Sanitizar historial: Gemini requiere que el primer Content tenga role "user"
+    // Eliminar mensajes "model" iniciales que preceden al primer mensaje "user"
+    const firstUserIndex = validatedHistory.findIndex(m => m.role === "user");
+    const sanitizedHistory = firstUserIndex >= 0
+      ? validatedHistory.slice(firstUserIndex)
+      : [];
+
+    // 4. Clasificación semántica de intención (Intent Classification)
+    const models = [
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-1.5-flash"
+    ];
+
+    let lastModelError: Error | null = null;
+
+    for (const modelName of models) {
+    try {
     const classificationModel = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: modelName,
       generationConfig: {
         responseMimeType: "text/plain",
         temperature: 0.1,
@@ -68,9 +85,9 @@ Intención:`;
       }
     }
 
-    // 5. Generar respuesta estratégica con el Coach de Hexacore
+    // 6. Generar respuesta estratégica con el Coach de Hexacore
     const coachModel = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: modelName,
       generationConfig: {
         temperature: 0.7,
       },
@@ -97,8 +114,8 @@ La intención clasificada del usuario es: [${intent}]. Adapta tu enfoque según 
 `;
 
     // Preparar el formato de chat para Gemini
-    // Convertimos "assistant" a "model" para el formato de chat de Gemini
-    const geminiHistory = validatedHistory.map(h => ({
+    // Convertimos "assistant" a "model" y usamos el historial sanitizado
+    const geminiHistory = sanitizedHistory.map(h => ({
       role: h.role === "assistant" ? "model" as const : h.role as "user" | "model",
       parts: [{ text: h.content }],
     }));
@@ -112,6 +129,17 @@ La intención clasificada del usuario es: [${intent}]. Adapta tu enfoque según 
     const responseText = chatResult.response.text();
 
     return { success: true, response: responseText };
+    } catch (modelError) {
+      console.warn(`[Coach] Falló con modelo ${modelName}:`, modelError);
+      lastModelError = modelError instanceof Error ? modelError : new Error(String(modelError));
+      // Continuar al siguiente modelo en la rotación
+    }
+    } // end for
+
+    // Si todos los modelos fallaron
+    const errorMsg = lastModelError?.message || "Error inesperado al chatear con el Coach.";
+    console.error("[Coach] Todos los modelos fallaron. Último error:", errorMsg);
+    return { success: false, error: errorMsg };
   } catch (error) {
     console.error("Error en chatAssistantAction:", error);
     const errorMessage = error instanceof Error ? error.message : "Error inesperado al chatear con el Coach.";

@@ -12,16 +12,6 @@
 </p>
 
 <p align="center">
-  <a href="https://hexacore-teambuilder.vercel.app" target="_blank" style="font-size: 1.1rem; font-weight: bold; text-decoration: none; color: black; background: #FFDE47; padding: 8px 16px; border: 3px solid black; box-shadow: 4px 4px 0px 0px #000; display: inline-block; margin: 10px 0;">
-    🚀 LIVE DEMO / DEMO EN VIVO
-  </a>
-</p>
-
-<p align="center" style="margin: 20px 0;">
-  <img src="public/images/hexacore_mockup.png" alt="Hexacore UI Neo-Brutalist Dashboard & AI Telemetry Terminal" width="800" style="border: 4px solid black; box-shadow: 8px 8px 0px 0px #000; max-width: 100%;" />
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs" />
   <img src="https://img.shields.io/badge/PostgreSQL-pgvector-316192?logo=postgresql" />
   <img src="https://img.shields.io/badge/AI-Gemini_2.5-4285F4?logo=google" />
