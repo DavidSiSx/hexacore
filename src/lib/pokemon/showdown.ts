@@ -21,13 +21,14 @@ export function exportTeamToShowdown(members: PokemonBuild[]): string {
     }
 
     // EVs
+    const evs = p.evs || {};
     const evParts: string[] = [];
-    if (p.evs.HP) evParts.push(`${p.evs.HP} HP`);
-    if (p.evs.Atk) evParts.push(`${p.evs.Atk} Atk`);
-    if (p.evs.Def) evParts.push(`${p.evs.Def} Def`);
-    if (p.evs.SpA) evParts.push(`${p.evs.SpA} SpA`);
-    if (p.evs.SpD) evParts.push(`${p.evs.SpD} SpD`);
-    if (p.evs.Spe) evParts.push(`${p.evs.Spe} Spe`);
+    if (evs.HP) evParts.push(`${evs.HP} HP`);
+    if (evs.Atk) evParts.push(`${evs.Atk} Atk`);
+    if (evs.Def) evParts.push(`${evs.Def} Def`);
+    if (evs.SpA) evParts.push(`${evs.SpA} SpA`);
+    if (evs.SpD) evParts.push(`${evs.SpD} SpD`);
+    if (evs.Spe) evParts.push(`${evs.Spe} Spe`);
     if (evParts.length > 0) {
       output += `EVs: ${evParts.join(" / ")}\n`;
     }
@@ -37,13 +38,14 @@ export function exportTeamToShowdown(members: PokemonBuild[]): string {
     }
 
     // IVs
+    const ivs = p.ivs || {};
     const ivParts: string[] = [];
-    if (p.ivs.HP !== undefined && p.ivs.HP !== 31) ivParts.push(`${p.ivs.HP} HP`);
-    if (p.ivs.Atk !== undefined && p.ivs.Atk !== 31) ivParts.push(`${p.ivs.Atk} Atk`);
-    if (p.ivs.Def !== undefined && p.ivs.Def !== 31) ivParts.push(`${p.ivs.Def} Def`);
-    if (p.ivs.SpA !== undefined && p.ivs.SpA !== 31) ivParts.push(`${p.ivs.SpA} SpA`);
-    if (p.ivs.SpD !== undefined && p.ivs.SpD !== 31) ivParts.push(`${p.ivs.SpD} SpD`);
-    if (p.ivs.Spe !== undefined && p.ivs.Spe !== 31) ivParts.push(`${p.ivs.Spe} Spe`);
+    if (ivs.HP !== undefined && ivs.HP !== 31) ivParts.push(`${ivs.HP} HP`);
+    if (ivs.Atk !== undefined && ivs.Atk !== 31) ivParts.push(`${ivs.Atk} Atk`);
+    if (ivs.Def !== undefined && ivs.Def !== 31) ivParts.push(`${ivs.Def} Def`);
+    if (ivs.SpA !== undefined && ivs.SpA !== 31) ivParts.push(`${ivs.SpA} SpA`);
+    if (ivs.SpD !== undefined && ivs.SpD !== 31) ivParts.push(`${ivs.SpD} SpD`);
+    if (ivs.Spe !== undefined && ivs.Spe !== 31) ivParts.push(`${ivs.Spe} Spe`);
     if (ivParts.length > 0) {
       output += `IVs: ${ivParts.join(" / ")}\n`;
     }

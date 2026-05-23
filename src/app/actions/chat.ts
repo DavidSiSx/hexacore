@@ -45,9 +45,10 @@ export async function chatAssistantAction(
 
     // 4. Clasificación semántica de intención (Intent Classification)
     const models = [
+      "gemini-3.5-flash",
+      "gemini-3.1-flash-lite",
       "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-      "gemini-1.5-flash"
+      "gemini-2.5-flash-lite"
     ];
 
     let lastModelError: Error | null = null;

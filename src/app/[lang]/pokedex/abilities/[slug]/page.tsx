@@ -16,13 +16,18 @@ async function getPokemonWithAbility(abilityName: string) {
   
   const filtered = criaturas.filter(c => {
     const attrs = c.atributos_de_combate as any;
-    const habilidades = Array.isArray(attrs?.habilidades) ? attrs.habilidades : [];
+    const habilidades = Array.isArray(attrs?.abilities) 
+      ? attrs.abilities 
+      : (Array.isArray(attrs?.habilidades) ? attrs.habilidades : []);
     return habilidades.includes(abilityName);
   });
 
   return filtered.slice(0, 100).map(c => {
     const attrs = c.atributos_de_combate as any;
-    return { nombre: c.nombre, slug: c.slug, tipos: attrs?.tipos || [] };
+    const tipos = Array.isArray(attrs?.types) 
+      ? attrs.types 
+      : (Array.isArray(attrs?.tipos) ? attrs.tipos : []);
+    return { nombre: c.nombre, slug: c.slug, tipos };
   });
 }
 

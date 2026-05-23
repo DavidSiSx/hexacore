@@ -6,11 +6,10 @@ import { getTypeEffectiveness } from "../battle/engine";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const models = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
+  "gemini-3.5-flash",
   "gemini-3.1-flash-lite",
-  "gemini-3.0-flash",
-  "gemini-1.5-flash"
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite"
 ];
 
 // Reutilizamos el esquema JSON estructurado de Gemini para garantizar tipado

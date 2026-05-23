@@ -69,7 +69,35 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Cargar historial y contador desde localStorage al montar
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMessages = localStorage.getItem("hexacore_coach_messages");
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          console.error("Error loading messages from localStorage:", e);
+        }
+      }
+      const savedCount = localStorage.getItem("hexacore_coach_total_questions");
+      if (savedCount) {
+        setTotalQuestions(parseInt(savedCount, 10) || 0);
+      }
+    }
+  }, []);
+
+  // Guardar historial en localStorage al cambiar
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (messages.length > 1) {
+        localStorage.setItem("hexacore_coach_messages", JSON.stringify(messages));
+      }
+    }
+  }, [messages]);
 
   // Scroll automático
   useEffect(() => {
@@ -79,15 +107,23 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
   async function handleSend(e?: React.FormEvent, customText?: string) {
     e?.preventDefault();
     const textToSend = customText || input;
-    if (!textToSend.trim() || loading) return;
+    if (!textToSend.trim() || loading || totalQuestions >= 5) return;
 
     if (!customText) {
       setInput("");
     }
 
     const newMsg: Message = { role: "user", content: textToSend };
-    setMessages((prev) => [...prev, newMsg]);
+    const updatedMessages = [...messages, newMsg];
+    setMessages(updatedMessages);
     setLoading(true);
+
+    // Incrementar y guardar contador de preguntas
+    const nextCount = totalQuestions + 1;
+    setTotalQuestions(nextCount);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("hexacore_coach_total_questions", String(nextCount));
+    }
 
     // Si hay un equipo activo, podemos inyectarle contexto al mensaje
     let richMessage = textToSend;
@@ -97,7 +133,7 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
     }
 
     // Adaptar historial para la acción
-    const history = messages.map(m => ({
+    const history = updatedMessages.map(m => ({
       role: m.role === "assistant" ? "model" as const : m.role as "user" | "model" | "assistant",
       content: m.content
     }));
@@ -152,7 +188,7 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
                    ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
-        <div className={`p-4 border-b-4 ${activeTheme.borderClass} flex justify-between items-center bg-black/20`}>
+        <div className={`p-4 border-b-4 ${activeTheme.borderClass} flex justify-between items-center bg-black/20 shrink-0`}>
           <div className="flex items-center gap-2">
             <Sparkles className={`w-5 h-5 ${activeTheme.accentClass}`} strokeWidth={2.5} />
             <h3 className={`font-black uppercase tracking-tighter text-lg ${activeTheme.textMainClass}`}>
@@ -167,6 +203,17 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Banner de Modo Beta Neo-Brutalista */}
+        <div className="bg-[#DFE104] text-black border-b-4 border-black px-4 py-2 flex justify-between items-center font-black text-[10px] uppercase tracking-widest shrink-0 shadow-[inset_0_-2px_0_rgba(0,0,0,0.1)]">
+          <span className="flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+            Beta Mode Active
+          </span>
+          <span className="bg-black text-white px-2 py-0.5 border border-black font-mono">
+            Preguntas: {totalQuestions} / 5
+          </span>
         </div>
 
         {/* Chat Area */}
@@ -215,11 +262,26 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
             </div>
           )}
 
+          {/* Límite Alcanzado Alert */}
+          {totalQuestions >= 5 && (
+            <div className="border-4 border-[var(--danger)] bg-[var(--danger)]/15 p-4 flex flex-col gap-2 items-center text-center animate-fade-in my-2">
+              <span className="bg-[var(--danger)] text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5">
+                LÍMITE ALCANZADO
+              </span>
+              <p className="text-xs font-black uppercase leading-tight text-[var(--foreground)]">
+                Has consumido tus 5 consultas gratuitas del Coach de IA.
+              </p>
+              <p className="text-[10px] font-bold uppercase leading-normal text-zinc-400">
+                La fase beta está limitada a 5 preguntas para optimizar recursos. ¡Consigue la versión Pro para análisis y estrategias ilimitadas!
+              </p>
+            </div>
+          )}
+
           <div ref={chatEndRef} />
         </div>
 
         {/* Quick Questions (Sugerencias) */}
-        <div className={`px-4 pt-3 pb-1 border-t-2 ${activeTheme.borderClass} bg-black/10`}>
+        <div className={`px-4 pt-3 pb-1 border-t-2 ${activeTheme.borderClass} bg-black/10 shrink-0`}>
           <span className={`text-[8px] font-black uppercase tracking-widest ${activeTheme.textMutedClass} block mb-1.5`}>
             Preguntas Rápidas del Metajuego:
           </span>
@@ -229,9 +291,11 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
                 key={i}
                 type="button"
                 onClick={() => handleSend(undefined, q)}
+                disabled={totalQuestions >= 5}
                 className={`text-[8.5px] font-bold uppercase py-1 px-2 border border-[var(--foreground)]/10
                            hover:border-[var(--accent)] hover:bg-[var(--accent)]/5 hover:text-[var(--accent)]
-                           transition-all rounded-none cursor-pointer ${activeTheme.cardBgClass} ${activeTheme.textMainClass}`}
+                           transition-all rounded-none cursor-pointer ${activeTheme.cardBgClass} ${activeTheme.textMainClass}
+                           disabled:opacity-30 disabled:pointer-events-none`}
               >
                 {q}
               </button>
@@ -242,20 +306,20 @@ export default function ChatAssistantDrawer({ currentTeam, activeTheme }: ChatAs
         {/* Input Form */}
         <form
           onSubmit={(e) => handleSend(e)}
-          className={`p-4 border-t-4 ${activeTheme.borderClass} flex gap-2 bg-black/20`}
+          className={`p-4 border-t-4 ${activeTheme.borderClass} flex gap-2 bg-black/20 shrink-0`}
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Hazle una consulta estratégica al Coach..."
-            disabled={loading}
+            placeholder={totalQuestions >= 5 ? "Límite de beta alcanzado (5/5)..." : "Hazle una consulta estratégica al Coach..."}
+            disabled={loading || totalQuestions >= 5}
             className={`flex-1 bg-[var(--background)] border-2 ${activeTheme.borderClass} px-3 py-2
-                       text-xs font-bold outline-none placeholder:text-[var(--foreground)]/30`}
+                       text-xs font-bold outline-none placeholder:text-[var(--foreground)]/30 disabled:opacity-50`}
           />
           <button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || totalQuestions >= 5}
             className={`bg-[var(--accent)] text-[var(--accent-foreground)] border-2 border-[var(--accent)]
                        px-4 flex items-center justify-center font-black hover:bg-[var(--foreground)]
                        hover:text-[var(--background)] hover:border-[var(--foreground)] transition-none

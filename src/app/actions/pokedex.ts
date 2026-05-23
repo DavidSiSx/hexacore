@@ -251,19 +251,27 @@ function mapToSearchResult(record: Record<string, unknown>): PokemonSearchResult
     nombres: (record.nombres as unknown as LocalizedStrings) || { en: "", es: "" },
     descripciones: (record.descripciones as unknown as LocalizedStrings) || { en: "", es: "" },
     categorias: (record.categorias as unknown as LocalizedStrings) || { en: "", es: "" },
-    tipos: Array.isArray(combatAttributes.tipos) ? combatAttributes.tipos.map(String) : [],
+    tipos: Array.isArray(combatAttributes.types) 
+      ? combatAttributes.types.map(String) 
+      : (Array.isArray(combatAttributes.tipos) ? combatAttributes.tipos.map(String) : []),
     tier: String(combatAttributes.tier || "Unknown"),
-    sprite_url: String(combatAttributes.sprite_url || ""),
-    stats_base: (combatAttributes.stats_base as Record<string, number>) || {},
-    habilidades: Array.isArray(combatAttributes.habilidades) ? combatAttributes.habilidades.map(String) : [],
+    sprite_url: String(combatAttributes.spriteUrl || combatAttributes.sprite_url || ""),
+    stats_base: (combatAttributes.baseStats as Record<string, number>) || (combatAttributes.stats_base as Record<string, number>) || {},
+    habilidades: Array.isArray(combatAttributes.abilities) 
+      ? combatAttributes.abilities.map(String) 
+      : (Array.isArray(combatAttributes.habilidades) ? combatAttributes.habilidades.map(String) : []),
     tags: Array.isArray(combatAttributes.tags) ? combatAttributes.tags.map(String) : [],
-    generacion: Number(combatAttributes.generacion) || 1,
+    generacion: Number(combatAttributes.generation || combatAttributes.generacion) || 1,
     num: Number(combatAttributes.num) || 0,
-    peso: Number(combatAttributes.peso) || 0,
-    altura: Number(combatAttributes.altura) || 0,
-    egg_groups: Array.isArray(combatAttributes.egg_groups) ? combatAttributes.egg_groups.map(String) : [],
+    peso: Number(combatAttributes.weight || combatAttributes.peso) || 0,
+    altura: Number(combatAttributes.height || combatAttributes.altura) || 0,
+    egg_groups: Array.isArray(combatAttributes.eggGroups) 
+      ? combatAttributes.eggGroups.map(String) 
+      : (Array.isArray(combatAttributes.egg_groups) ? combatAttributes.egg_groups.map(String) : []),
     learnset: Array.isArray(combatAttributes.learnset) ? combatAttributes.learnset.map(String) : [],
-    evolution_chain: Array.isArray(combatAttributes.evolution_chain) ? combatAttributes.evolution_chain.map(String) : [],
+    evolution_chain: Array.isArray(combatAttributes.evolutionChain) 
+      ? combatAttributes.evolutionChain.map(String) 
+      : (Array.isArray(combatAttributes.evolution_chain) ? combatAttributes.evolution_chain.map(String) : []),
     weaknesses: Array.isArray(combatAttributes.weaknesses) ? combatAttributes.weaknesses.map(String) : [],
     resistances: Array.isArray(combatAttributes.resistances) ? combatAttributes.resistances.map(String) : [],
     immunities: Array.isArray(combatAttributes.immunities) ? combatAttributes.immunities.map(String) : [],
